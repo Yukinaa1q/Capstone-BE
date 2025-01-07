@@ -16,6 +16,18 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "resolveJsonModule": true,
+    "paths": {
+      "@environment": ["src/environment"],
+      "@config": ["src/config"],
+      "@modules/*": ["src/modules/*"],
+      "@services/*": ["src/services/*"],
+      "@common/*": ["src/common/*"],
+      "@utils": ["src/utils"],
+      "@constants": ["src/constants"],
+      "@base/*": ["src/base/*"],
+      "@credentials/*": ["src/credentials/*"]
+    }
   }
 }
