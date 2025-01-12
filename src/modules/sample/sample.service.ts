@@ -5,9 +5,13 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class SampleService {
-  constructor() {}
+  constructor(
+    @InjectRepository(SampleEntity)
+    private readonly sampleRepository: Repository<SampleEntity>,
+  ) {}
 
-  getSample(): string {
-    return 'Hello!';
+  async getSample(): Promise<SampleEntity[]> {
+    const res = await this.sampleRepository.find();
+    return res;
   }
 }

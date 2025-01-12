@@ -9,7 +9,7 @@ export class SampleController {
 
   @Get()
   @ApiResponseString()
-  getSample(): string {
+  async getSample(): Promise<SampleEntity[]> {
     return this.sampleService.getSample();
   }
 
