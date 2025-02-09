@@ -2,11 +2,15 @@ import { Module } from '@nestjs/common';
 import { AppFeaturesModule } from './modules';
 import { ConfigModule } from '@config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { GuardModule } from '@common/guard';
+import { CloudinaryModule } from '@services/cloudinary';
 
 @Module({
   imports: [
     AppFeaturesModule,
+    GuardModule,
     ConfigModule,
+    CloudinaryModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',

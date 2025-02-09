@@ -8,6 +8,7 @@ export const initOpenApi = (app: INestApplication) => {
     .setTitle('API document')
     .setDescription(`[JSON API DOCUMENT](${DOCS_JSON_ENDPOINT})`)
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config, {
     operationIdFactory: (_, key) => key,
