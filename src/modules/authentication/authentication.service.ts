@@ -37,12 +37,14 @@ export class AuthenticationService {
   async registerNative(data: CreateStudentDTO): Promise<String> {
     const checkDup = await this.studentService.findOneStudent(data.email);
     if (checkDup) {
+      
       throw new ServiceException(
         ResponseCode.SAME_EMAIL_ERROR,
         'This email is registered',
       );
     }
     const newUser = await this.studentService.createStudent(data);
+    console.log("Created New User")
     return 'Your account is successfully created';
   }
 }

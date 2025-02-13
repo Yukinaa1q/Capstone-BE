@@ -43,12 +43,12 @@ export class User {
   @IsNotEmpty()
   phone: string;
 
-  @Column()
-  @ApiProperty()
+  @Column({ nullable: true })
+  @ApiPropertyOptional()
   @IsDate()
   @Transform(({ value }) => stringToDate(value))
-  @IsNotEmpty()
-  DOB: Date;
+  @IsOptional()
+  DOB?: Date;
 
   @Column()
   @ApiProperty()

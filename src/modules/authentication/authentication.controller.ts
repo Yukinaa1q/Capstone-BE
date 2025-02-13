@@ -1,7 +1,7 @@
-import { ApiController, ApiResponseString } from '@services/openApi';
+import { ApiController, ApiResponseObject, ApiResponseString } from '@services/openApi';
 import { AuthenticationService } from './authentication.service';
 import { Body, Post } from '@nestjs/common';
-import { LogInWithPasswordDTO } from './dto';
+import { AccessTokenDTO, LogInWithPasswordDTO } from './dto';
 import { CreateStudentDTO } from '@modules/student/dto';
 
 @ApiController('authentication')
@@ -9,15 +9,17 @@ export class AuthenticationController {
   constructor(private readonly authenticationService: AuthenticationService) {}
 
   @Post('login')
-  @ApiResponseString()
+  @ApiResponseObject(AccessTokenDTO)
   async logIn(@Body() data: LogInWithPasswordDTO) {
     const token = await this.authenticationService.logInWithPassword(data);
-    return token;
+    return {token: token};
   }
 
   @Post('signup')
   @ApiResponseString()
   async signup(@Body() data: CreateStudentDTO) {
+    console.log(data);
+    console.log(typeof data);
     const signup = await this.authenticationService.registerNative(data);
     return signup;
   }
