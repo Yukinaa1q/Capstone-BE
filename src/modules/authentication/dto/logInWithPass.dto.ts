@@ -12,3 +12,10 @@ export class LogInWithPasswordDTO {
   @IsNotEmpty()
   password: string;
 }
+
+export class AccessTokenDTO {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+}
