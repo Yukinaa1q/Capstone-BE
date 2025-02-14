@@ -4,5 +4,5 @@ import { IsString } from 'class-validator';
 
 export class CreateCourseDTO extends OmitUpdateType(Course, ['courseId']) {
   @IsString()
-  pId: string;
+  courseCode: string;
 }

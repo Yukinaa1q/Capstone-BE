@@ -32,15 +32,15 @@ export class CourseController {
     schema: {
       type: 'object',
       properties: {
-        file: { type: 'string', format: 'binary' },
-        subject: { type: 'string' },
+        courseImage: { type: 'string', format: 'binary' },
+        courseSubject: { type: 'string' },
         courseName: { type: 'string' },
         courseLevel: { type: 'string' },
-        price: { type: 'number' },
-        pId: { type: 'string' },
+        coursePrice: { type: 'number' },
+        courseCode: { type: 'string' },
         participantNumber: { type: 'number', default: 0 },
-        courseDetail: { type: 'string' },
-        courseContent: {
+        courseDescription: { type: 'string' },
+        courseOutline: {
           type: 'string',
         },
       },
@@ -54,10 +54,11 @@ export class CourseController {
         validators: [new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 15 })],
       }),
     )
-    file: Express.Multer.File,
+    courseImage: Express.Multer.File,
     @Body() data: CreateCourseDTO,
   ) {
-    return this.courseService.createCourse(file, data);
+    console.log('data', data);
+    return this.courseService.createCourse(courseImage, data);
   }
 
   @Post('update-course/:id')

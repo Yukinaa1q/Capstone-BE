@@ -31,25 +31,25 @@ export class Course {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  subject: string;
+  courseSubject: string;
 
   @Column()
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  pId: string;
+  courseCode: string;
 
   @Column()
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  courseName: string;
+  courseTitle: string;
 
   @Column()
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  image?: string;
+  courseImage?: string;
 
   @Column()
   @ApiProperty()
@@ -61,7 +61,7 @@ export class Course {
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
-  price: number;
+  coursePrice: number;
 
   @Column({ default: 0 })
   @ApiProperty({ default: 0 })
@@ -72,10 +72,10 @@ export class Course {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  courseDetail: string;
+  courseDescription: string;
 
   @Column({ type: 'jsonb', nullable: true })
   @ApiProperty({ type: () => [CourseContentItem] })
   @IsArray()
-  courseContent: CourseContentItem[];
+  courseOutline: CourseContentItem[];
 }

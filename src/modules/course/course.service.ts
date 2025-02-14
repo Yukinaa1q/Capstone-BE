@@ -19,7 +19,7 @@ export class CourseService {
     file: Express.Multer.File,
     data: CreateCourseDTO,
   ): Promise<Course> {
-    const checkDup = await this.findOneCourse(data.pId);
+    const checkDup = await this.findOneCourse(data.courseCode);
     if (checkDup) {
       throw new ServiceException(
         ResponseCode.DUPLICATE_COURSE,
@@ -29,11 +29,11 @@ export class CourseService {
     const imageUrl = await this.cloudinaryService.uploadImage(file);
 
     const newCourse = await this.courseRepository.create({
-      image: imageUrl,
+      courseImage: imageUrl,
       ...data,
     });
-    if (typeof newCourse.courseContent === 'string') {
-      newCourse.courseContent = JSON.parse(newCourse.courseContent);
+    if (typeof newCourse.courseOutline === 'string') {
+      newCourse.courseOutline = JSON.parse(newCourse.courseOutline);
     }
     await this.courseRepository.save(newCourse);
 
@@ -45,8 +45,8 @@ export class CourseService {
     const updateCourse = await this.courseRepository.findOne({
       where: { courseId: courseId },
     });
-    if (typeof updateCourse.courseContent === 'string') {
-      updateCourse.courseContent = JSON.parse(updateCourse.courseContent);
+    if (typeof updateCourse.courseOutline === 'string') {
+      updateCourse.courseOutline = JSON.parse(updateCourse.courseOutline);
     }
     return updateCourse;
   }
@@ -59,16 +59,16 @@ export class CourseService {
       where: { courseId: courseId },
     });
     const newImageUrl = await this.cloudinaryService.uploadImage(file);
-    await this.cloudinaryService.deleteImage(findCourse.image);
-    await this.courseRepository.update(courseId, { image: newImageUrl });
-    return 'Your image was changed successfully';
+    await this.cloudinaryService.deleteImage(findCourse.courseImage);
+    await this.courseRepository.update(courseId, { courseImage: newImageUrl });
+    return 'Your courseImage was changed successfully';
   }
 
   async deleteCourse(courseId: string): Promise<string> {
     const findCourse = await this.courseRepository.findOne({
       where: { courseId: courseId },
     });
-    await this.cloudinaryService.deleteImage(findCourse.image);
+    await this.cloudinaryService.deleteImage(findCourse.courseImage);
     const deleteCourse = await this.courseRepository.delete(courseId);
 
     return 'The course is successfully deleted';
@@ -81,7 +81,7 @@ export class CourseService {
 
   async findOneCourse(pId: string): Promise<Course> {
     const findCourse = await this.courseRepository.findOne({
-      where: { pId: pId },
+      where: { courseCode: pId },
     });
     return findCourse;
   }
