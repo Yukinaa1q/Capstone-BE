@@ -15,15 +15,9 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 class Subsection {
   @IsString()
   subsectionTitle: string;
-
-  @IsBoolean()
-  isEditing: boolean;
 }
 
 class CourseContentItem {
-  @IsBoolean()
-  isEditing: boolean;
-
   @IsArray()
   subsections: Subsection[];
 
