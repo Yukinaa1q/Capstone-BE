@@ -26,7 +26,7 @@ export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
   @Post('create-course')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('courseImage'))
   @ApiBody({
     description: 'Avatar file to be uploaded',
     schema: {
@@ -57,7 +57,7 @@ export class CourseController {
     courseImage: Express.Multer.File,
     @Body() data: CreateCourseDTO,
   ) {
-    console.log('data', data);
+    console.log('data');
     return this.courseService.createCourse(courseImage, data);
   }
 

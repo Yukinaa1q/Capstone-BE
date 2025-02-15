@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsObject,
@@ -10,12 +11,24 @@ import {
   IsUUID,
 } from 'class-validator';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-class CourseContentItem {
+
+class Subsection {
   @IsString()
-  title: string;
+  subsectionTitle: string;
+
+  @IsBoolean()
+  isEditing: boolean;
+}
+
+class CourseContentItem {
+  @IsBoolean()
+  isEditing: boolean;
+
+  @IsArray()
+  subsections: Subsection[];
 
   @IsString()
-  description: string;
+  sectionTitle: string;
 }
 @Entity({ name: 'course' })
 export class Course {
