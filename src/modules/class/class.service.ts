@@ -7,12 +7,15 @@ import { Classroom } from './entity/class.entity';
 import { CreateClassroomDTO } from './dto/createClassroom.dto';
 import { ViewAllClassroomDTO } from './dto/viewAllClassroom.dto';
 import { ViewClassDetailDTO } from './dto/viewClassDetail.dto';
+import { Tutor } from '@modules/tutor/entity/tutor.entity';
 
 @Injectable()
 export class ClassroomService {
   constructor(
     @InjectRepository(Classroom)
     private readonly classroomRepository: Repository<Classroom>,
+    @InjectRepository(Tutor)
+    private readonly tutorRepository: Repository<Tutor>,
   ) {}
 
   async createClass(data: CreateClassroomDTO): Promise<Classroom> {
@@ -23,7 +26,13 @@ export class ClassroomService {
         'Duplicate Class',
       );
     }
-    const newClass = this.classroomRepository.create(data);
+    const findTutor = await this.tutorRepository.findOne({
+      where: { tutorCode: data.tutorCode },
+    });
+    const newClass = this.classroomRepository.create({
+      tutorId: findTutor.userId,
+      ...data,
+    });
     await this.classroomRepository.save(newClass);
     return newClass;
   }
