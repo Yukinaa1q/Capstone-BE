@@ -8,6 +8,7 @@ import { CreateClassroomDTO } from './dto/createClassroom.dto';
 import { ViewAllClassroomDTO } from './dto/viewAllClassroom.dto';
 import { ViewClassDetailDTO } from './dto/viewClassDetail.dto';
 import { Tutor } from '@modules/tutor/entity/tutor.entity';
+import { CourseService } from '@modules/course/course.service';
 
 @Injectable()
 export class ClassroomService {
@@ -16,6 +17,7 @@ export class ClassroomService {
     private readonly classroomRepository: Repository<Classroom>,
     @InjectRepository(Tutor)
     private readonly tutorRepository: Repository<Tutor>,
+    private readonly courseService: CourseService,
   ) {}
 
   async createClass(data: CreateClassroomDTO): Promise<Classroom> {
@@ -29,8 +31,10 @@ export class ClassroomService {
     const findTutor = await this.tutorRepository.findOne({
       where: { tutorCode: data.tutorCode },
     });
+    const findCourse = await this.courseService.findOneCourse(data.courseCode);
     const newClass = this.classroomRepository.create({
       tutorId: findTutor.userId,
+      courseId: findCourse.courseId,
       ...data,
     });
     await this.classroomRepository.save(newClass);

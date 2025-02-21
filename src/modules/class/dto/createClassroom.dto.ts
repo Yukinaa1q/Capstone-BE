@@ -8,4 +8,7 @@ export class CreateClassroomDTO extends OmitUpdateType(Classroom, ['classId']) {
 
   @IsString()
   tutorCode: string;
+
+  @IsString()
+  courseCode: string;
 }
