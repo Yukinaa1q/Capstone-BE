@@ -88,9 +88,10 @@ export class CourseService {
 
   async getAllCourseCodeAndTitle(): Promise<CourseCodeAndTitleDTO[]> {
     const findAllCourse = await this.courseRepository.find();
-    const result: CourseCodeAndTitleDTO[] = [];
+    const result = [];
     let i = 0;
     findAllCourse.forEach((course) => {
+      result[i] = {} as CourseCodeAndTitleDTO;
       result[i].courseCode = course.courseCode;
       result[i].courseTitle = course.courseTitle;
       i++;
