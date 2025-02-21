@@ -1,6 +1,6 @@
 import { OmitUpdateType } from '@services/openApi';
-import { Course } from '../entity';
 import { IsString } from 'class-validator';
+import { Course } from '../entity/course.entity';
 
 export class CreateCourseDTO extends OmitUpdateType(Course, ['courseId']) {
   @IsString()

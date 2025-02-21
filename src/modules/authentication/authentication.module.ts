@@ -4,6 +4,7 @@ import { AuthenticationService } from './authentication.service';
 import { JwtModule } from '@nestjs/jwt';
 import { JWT_SECRET } from '@environment';
 import { StudentModule } from '@modules/student';
+import { TutorModule } from '@modules/tutor/tutor.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { StudentModule } from '@modules/student';
       signOptions: { expiresIn: '5h' },
     }),
     StudentModule,
+    TutorModule,
   ],
   controllers: [AuthenticationController],
   providers: [AuthenticationService],

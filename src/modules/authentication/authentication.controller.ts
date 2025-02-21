@@ -7,6 +7,7 @@ import { AuthenticationService } from './authentication.service';
 import { Body, Post } from '@nestjs/common';
 import { AccessTokenDTO, LogInWithPasswordDTO } from './dto';
 import { CreateStudentDTO } from '@modules/student/dto';
+import { CreateTutorDTO } from '@modules/tutor/dto/createTutor.dto';
 
 @ApiController('authentication')
 export class AuthenticationController {
@@ -23,6 +24,20 @@ export class AuthenticationController {
   @ApiResponseString()
   async signup(@Body() data: CreateStudentDTO) {
     const signup = await this.authenticationService.registerNative(data);
+    return signup;
+  }
+
+  @Post('login/tutor')
+  @ApiResponseObject(AccessTokenDTO)
+  async logInTutor(@Body() data: LogInWithPasswordDTO) {
+    const token = await this.authenticationService.logInWithPasswordTutor(data);
+    return { token: token };
+  }
+
+  @Post('signup/tutor')
+  @ApiResponseString()
+  async signupTutor(@Body() data: CreateTutorDTO) {
+    const signup = await this.authenticationService.registerNativeTutor(data);
     return signup;
   }
 }

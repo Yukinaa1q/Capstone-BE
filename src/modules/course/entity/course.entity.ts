@@ -1,4 +1,9 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Classroom } from '@modules/class/entity/class.entity';
+import {
+  ApiHideProperty,
+  ApiProperty,
+  ApiPropertyOptional,
+} from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
   IsArray,
@@ -10,20 +15,21 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-class Subsection {
+export class Subsection {
   @IsString()
   subsectionTitle: string;
 }
 
-class CourseContentItem {
+export class CourseContentItem {
   @IsArray()
   subsections: Subsection[];
 
   @IsString()
   sectionTitle: string;
 }
+
 @Entity({ name: 'course' })
 export class Course {
   @PrimaryGeneratedColumn('uuid')
@@ -85,4 +91,8 @@ export class Course {
   @ApiProperty({ type: () => [CourseContentItem] })
   @IsArray()
   courseOutline: CourseContentItem[];
+
+  @ApiHideProperty()
+  @OneToMany(() => Classroom, (classroom) => classroom.course)
+  classrooms: Course[];
 }

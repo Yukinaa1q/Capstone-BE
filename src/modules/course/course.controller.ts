@@ -16,10 +16,12 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { Course } from './entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes } from '@nestjs/swagger';
-import { CreateCourseDTO, FileUploadDto, UpdateCourseDTO } from './dto';
+import { CreateCourseDTO } from './dto/createCourse.dto';
+import { FileUploadDto } from './dto/fileUpload.dto';
+import { UpdateCourseDTO, CourseCodeAndTitleDTO } from './dto/updateCourse.dto';
+import { Course } from './entity/course.entity';
 
 @ApiAuthController('course')
 export class CourseController {
@@ -100,6 +102,12 @@ export class CourseController {
   @ApiResponseObject(Course)
   async getOneCourse(@Param('id') id: string): Promise<Course> {
     return this.courseService.findOneCourse(id);
+  }
+
+  @Get('/course-code-title')
+  @ApiResponseArray(CourseCodeAndTitleDTO)
+  async getAllCodeAndTitle(): Promise<CourseCodeAndTitleDTO[]> {
+    return this.courseService.getAllCourseCodeAndTitle();
   }
 
   @Delete('delete/:id')

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Student } from './entity';
 import { Repository } from 'typeorm';
 import { CreateStudentDTO } from './dto';
-import { hashPassword } from '@utils';
+import { generateCustomID, hashPassword } from '@utils';
 import { UpdateStudentDTO } from './dto/updateStudent.dto';
 
 @Injectable()
@@ -13,11 +13,25 @@ export class StudentService {
     private readonly studentRepository: Repository<Student>,
   ) {}
 
+  async getNextStudentID(): Promise<string> {
+    const lastStudent = await this.studentRepository
+      .createQueryBuilder('student')
+      .orderBy('student.studentCode', 'DESC')
+      .getOne();
+
+    const lastNumber = lastStudent
+      ? parseInt(lastStudent.studentCode.slice(2))
+      : 0;
+    return generateCustomID('ST', lastNumber + 1);
+  }
+
   async createStudent(data: CreateStudentDTO): Promise<Student> {
     const hashPass = await hashPassword(data.password);
+    const studentCode = await this.getNextStudentID();
     const { password, ...studentData } = data;
     const newStudent = this.studentRepository.create({
       password: hashPass,
+      studentCode: studentCode,
       ...studentData,
     });
     await this.studentRepository.save(newStudent);

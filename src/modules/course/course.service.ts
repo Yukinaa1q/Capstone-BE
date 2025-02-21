@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Course } from './entity';
 import { Repository } from 'typeorm';
-import { CreateCourseDTO } from './dto';
 import { ResponseCode, ServiceException } from '@common/error';
-import { UpdateCourseDTO } from './dto/updateCourse.dto';
+import { CourseCodeAndTitleDTO, UpdateCourseDTO } from './dto/updateCourse.dto';
 import { CloudinaryService } from '@services/cloudinary/cloudinary.service';
+import { Course } from './entity/course.entity';
+import { CreateCourseDTO } from './dto/createCourse.dto';
 
 @Injectable()
 export class CourseService {
@@ -84,5 +84,17 @@ export class CourseService {
       where: { courseCode: pId },
     });
     return findCourse;
+  }
+
+  async getAllCourseCodeAndTitle(): Promise<CourseCodeAndTitleDTO[]> {
+    const findAllCourse = await this.courseRepository.find();
+    const result: CourseCodeAndTitleDTO[] = [];
+    let i = 0;
+    findAllCourse.forEach((course) => {
+      result[i].courseCode = course.courseCode;
+      result[i].courseTitle = course.courseTitle;
+      i++;
+    });
+    return result;
   }
 }
