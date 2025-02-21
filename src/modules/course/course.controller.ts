@@ -98,16 +98,16 @@ export class CourseController {
     return this.courseService.findAllCourse();
   }
 
-  @Get(':id')
-  @ApiResponseObject(Course)
-  async getOneCourse(@Param('id') id: string): Promise<Course> {
-    return this.courseService.findOneCourse(id);
-  }
-
   @Get('/course-code-title')
   @ApiResponseArray(CourseCodeAndTitleDTO)
   async getAllCodeAndTitle(): Promise<CourseCodeAndTitleDTO[]> {
     return this.courseService.getAllCourseCodeAndTitle();
+  }
+
+  @Get(':id')
+  @ApiResponseObject(Course)
+  async getOneCourse(@Param('id') id: string): Promise<Course> {
+    return this.courseService.findOneCourse(id);
   }
 
   @Delete('delete/:id')
