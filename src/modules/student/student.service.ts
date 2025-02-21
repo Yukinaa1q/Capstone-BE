@@ -51,6 +51,11 @@ export class StudentService {
     return this.studentRepository.findOne({ where: { userId: userId } });
   }
 
+  async getAllStudent(): Promise<Student[]> {
+    const listStudent = await this.studentRepository.find();
+    return listStudent;
+  }
+
   async findOneStudent(data: string): Promise<Student> {
     const findStudent = await this.studentRepository.findOne({
       where: { email: data },

@@ -36,6 +36,11 @@ export class TutorService {
     return newTutor;
   }
 
+  async getAllTutor(): Promise<Tutor[]> {
+    const allTutor = await this.tutorRepository.find();
+    return allTutor;
+  }
+
   async editTutorInfo(userId: string, data: UpdateTutorDTO): Promise<Tutor> {
     if (data.password) {
       data.password = await hashPassword(data.password);

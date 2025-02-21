@@ -50,6 +50,12 @@ export class User {
   @IsOptional()
   DOB?: Date;
 
+  @Column({ nullable: true })
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string;
+
   @Column()
   @ApiProperty()
   @IsNotEmpty()

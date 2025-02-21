@@ -1,5 +1,9 @@
-import { ApiAuthController, ApiResponseObject } from '@services/openApi';
-import { Body, Post } from '@nestjs/common';
+import {
+  ApiAuthController,
+  ApiResponseArray,
+  ApiResponseObject,
+} from '@services/openApi';
+import { Body, Get, Post } from '@nestjs/common';
 
 import { CurrentUser } from '@common/decorator';
 import { TutorService } from './tutor.service';
@@ -15,6 +19,12 @@ export class TutorController {
   @ApiResponseObject(Tutor)
   async createTutor(@Body() body: CreateTutorDTO): Promise<Tutor> {
     return this.tutorService.createTutor(body);
+  }
+
+  @Get('all-tutor')
+  @ApiResponseArray(Tutor)
+  async getAllTutor(): Promise<Tutor[]> {
+    return this.tutorService.getAllTutor();
   }
 
   @Post('/update')
