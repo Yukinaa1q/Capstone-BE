@@ -52,10 +52,8 @@ export class ClassroomService {
     return updateClass;
   }
 
-  async viewClasses(courseCode: string): Promise<ViewAllClassroomDTO[]> {
-    const classes = await this.classroomRepository.find({
-      where: { courseCode: courseCode },
-    });
+  async viewClasses(): Promise<ViewAllClassroomDTO[]> {
+    const classes = await this.classroomRepository.find();
     const result: ViewAllClassroomDTO[] = [];
     classes.forEach((classs) => {
       result.push({

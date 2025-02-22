@@ -5,7 +5,7 @@ import {
   ApiResponseString,
 } from '@services/openApi';
 import { ClassroomService } from './class.service';
-import { Body, Delete, Param, Post } from '@nestjs/common';
+import { Body, Delete, Get, Param, Post } from '@nestjs/common';
 import { CreateClassroomDTO } from './dto/createClassroom.dto';
 import { UpdateClassroomDTO } from './dto/updateClassroom.dto';
 import { ViewAllClassroomDTO } from './dto/viewAllClassroom.dto';
@@ -31,12 +31,10 @@ export class ClassroomController {
     return this.classroomService.updateClass(id, data);
   }
 
-  @Post('view-class')
+  @Get('view-class')
   @ApiResponseArray(ViewAllClassroomDTO)
-  async viewAllClasses(
-    @Body() courseCode: string,
-  ): Promise<ViewAllClassroomDTO[]> {
-    return this.classroomService.viewClasses(courseCode);
+  async viewAllClasses(): Promise<ViewAllClassroomDTO[]> {
+    return this.classroomService.viewClasses();
   }
 
   @Post('view-class-detail/:id')
