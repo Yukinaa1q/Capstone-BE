@@ -45,6 +45,15 @@ export class ClassroomService {
     classId: string,
     data: UpdateClassroomDTO,
   ): Promise<Classroom> {
+    delete data.studentIdList;
+    const findTutor = await this.tutorRepository.findOne({
+      where: { tutorCode: data.tutorCode },
+    });
+    const findCourse = await this.courseService.findOneCourse(data.courseCode);
+    data.tutorId = findTutor.userId;
+    data.courseId = findCourse.courseId;
+    delete data.tutorCode;
+    delete data.courseCode;
     await this.classroomRepository.update(classId, data);
     const updateClass = await this.classroomRepository.findOne({
       where: { classId: classId },

@@ -45,7 +45,7 @@ export class ClassroomController {
 
   @Delete('delete-class/:id')
   @ApiResponseString()
-  async deleteClass(@Body() classId: string): Promise<string> {
-    return this.classroomService.deleteClass(classId);
+  async deleteClass(@Param('id') id: string): Promise<string> {
+    return this.classroomService.deleteClass(id);
   }
 }
