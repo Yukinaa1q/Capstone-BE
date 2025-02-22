@@ -37,10 +37,10 @@ export class ClassroomController {
     return this.classroomService.viewClasses();
   }
 
-  @Post('view-class-detail/:id')
+  @Get('view-class-detail/:id')
   @ApiResponseObject(ViewClassDetailDTO)
-  async viewClassDetail(@Body() classId: string): Promise<ViewClassDetailDTO> {
-    return this.classroomService.viewClassDetail(classId);
+  async viewClassDetail(@Param('id') id: string): Promise<ViewClassDetailDTO> {
+    return this.classroomService.viewClassDetail(id);
   }
 
   @Delete('delete-class/:id')
