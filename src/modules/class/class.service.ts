@@ -69,7 +69,7 @@ export class ClassroomService {
 
   async viewClassDetail(classId: string): Promise<ViewClassDetailDTO> {
     const findClass = await this.classroomRepository.findOne({
-      where: { classId: classId },
+      where: { classCode: classId },
     });
     const result = {} as ViewClassDetailDTO;
     result.courseTitle = findClass.course.courseTitle;
