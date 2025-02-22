@@ -79,7 +79,7 @@ export class Classroom {
   classRoom?: string;
 
   @ApiHideProperty()
-  @ManyToOne(() => Tutor, (tutor) => tutor.classrooms)
+  @ManyToOne(() => Tutor, (tutor) => tutor.classrooms, { eager: true })
   @JoinColumn({ name: 'tutorId' })
   tutor: Tutor;
 
@@ -87,7 +87,7 @@ export class Classroom {
   tutorId: string;
 
   @ApiHideProperty()
-  @ManyToOne(() => Course, (course) => course.classrooms)
+  @ManyToOne(() => Course, (course) => course.classrooms, { eager: true })
   @JoinColumn({ name: 'courseId' })
   course: Course;
 
