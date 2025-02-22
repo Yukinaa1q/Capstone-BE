@@ -77,10 +77,11 @@ export class ClassroomService {
     result.learningDuration = 'default';
     result.registrationDuration = 'default';
     result.tutor = findClass.tutor.name;
+    result.tutorId = findClass.tutor.tutorCode;
     result.courseDescription = findClass.course.courseDescription;
     result.courseOutline = findClass.course.courseOutline;
     result.coursePrice = findClass.course.coursePrice;
-    result.classSession = findClass.studyShift;
+    result.classSession = findClass.studyWeek;
     result.classShift = findClass.studyShift;
     result.learningType = findClass.isOnline;
     result.classCode = findClass.classCode;

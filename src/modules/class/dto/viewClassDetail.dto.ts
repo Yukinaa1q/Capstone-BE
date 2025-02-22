@@ -62,6 +62,9 @@ export class ViewClassDetailDTO {
   @IsNumber()
   classMaxStudents: number;
 
+  @IsString()
+  tutorId: string;
+
   @IsArray()
   @IsOptional()
   studentList?: studentDetail[];
