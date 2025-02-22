@@ -83,6 +83,7 @@ export class ClassroomService {
     result.coursePrice = findClass.course.coursePrice;
     result.classSession = findClass.studyWeek;
     result.classShift = findClass.studyShift;
+    result.classId = findClass.classId;
     result.learningType = findClass.isOnline;
     result.classCode = findClass.classCode;
     result.classStudents = findClass.maxStudents;
