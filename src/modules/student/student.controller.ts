@@ -29,10 +29,9 @@ export class StudentController {
   @Post('/update')
   @ApiResponseObject(Student)
   async updateStudentInfo(
-    @CurrentUser() student: Student,
+    @CurrentUser() student: any,
     @Body() data: UpdateStudentDTO,
   ): Promise<Student> {
-    console.log(student);
     return this.studentService.editStudentInfo(student.userId, data);
   }
 }

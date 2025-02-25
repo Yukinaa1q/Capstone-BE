@@ -9,6 +9,7 @@ import { checkPassword } from '@utils';
 import { CreateStudentDTO } from '@modules/student/dto';
 import { TutorService } from '@modules/tutor/tutor.service';
 import { CreateTutorDTO } from '@modules/tutor/dto/createTutor.dto';
+import { UserPayload } from './dto';
 @Injectable()
 export class AuthenticationService {
   constructor(
@@ -32,9 +33,15 @@ export class AuthenticationService {
         'Wrong credentials',
       );
     }
+    const payload = {
+      role: 'student',
+      userId: user.userId,
+      userCode: user.studentCode,
+      name: user.name,
+    } as UserPayload;
 
     const accessToken = await this.jwtService.signAsync(
-      { user },
+      { payload },
       { secret: JWT_SECRET },
     );
     return accessToken;
@@ -68,8 +75,15 @@ export class AuthenticationService {
       );
     }
 
+    const payload = {
+      role: 'student',
+      userId: user.userId,
+      userCode: user.tutorCode,
+      name: user.name,
+    } as UserPayload;
+
     const accessToken = await this.jwtService.signAsync(
-      { user },
+      { payload },
       { secret: JWT_SECRET },
     );
     return accessToken;
