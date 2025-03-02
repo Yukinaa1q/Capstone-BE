@@ -76,7 +76,7 @@ export class AuthenticationService {
     }
 
     const payload = {
-      role: 'student',
+      role: 'tutor',
       userId: user.userId,
       userCode: user.tutorCode,
       name: user.name,
