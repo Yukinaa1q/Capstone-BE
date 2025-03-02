@@ -94,5 +94,5 @@ export class Course {
 
   @ApiHideProperty()
   @OneToMany(() => Classroom, (classroom) => classroom.course)
-  classrooms: Course[];
+  classrooms: Classroom[];
 }

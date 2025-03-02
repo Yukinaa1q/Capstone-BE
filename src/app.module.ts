@@ -6,6 +6,7 @@ import { GuardModule } from '@common/guard';
 import { CloudinaryModule } from '@services/cloudinary';
 import { Classroom } from '@modules/class/entity/class.entity';
 import { Tutor } from '@modules/tutor/entity/tutor.entity';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { Tutor } from '@modules/tutor/entity/tutor.entity';
     GuardModule,
     ConfigModule,
     CloudinaryModule,
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -20,7 +22,8 @@ import { Tutor } from '@modules/tutor/entity/tutor.entity';
       username: 'postgres',
       password: '30092003',
       database: 'Tucour',
-      entities: ['dist/modules/*/entity/*.entity.js'],
+      // entities: ['dist/modules/*/entity/*.entity.js'],
+      autoLoadEntities: true,
       synchronize: true,
     }),
   ],

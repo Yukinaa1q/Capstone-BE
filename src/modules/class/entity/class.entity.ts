@@ -1,4 +1,5 @@
 import { Course } from '@modules/course/entity/course.entity';
+import { Student } from '@modules/student/entity/student.entity';
 import { Tutor } from '@modules/tutor/entity/tutor.entity';
 import {
   ApiHideProperty,
@@ -18,6 +19,8 @@ import {
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -47,6 +50,12 @@ export class Classroom {
   @IsNumber()
   @IsNotEmpty()
   maxStudents: number;
+
+  @Column({ nullable: true })
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  currentStudents?: number;
 
   @Column()
   @ApiProperty()
@@ -93,4 +102,12 @@ export class Classroom {
 
   @Column({ nullable: false })
   courseId: string;
+
+  @ManyToMany(() => Student, (student) => student.classrooms)
+  @JoinTable({
+    name: 'classroom_student', // Name of the join table
+    joinColumn: { name: 'classroomId', referencedColumnName: 'classId' }, // Column for Classroom
+    inverseJoinColumn: { name: 'studentId', referencedColumnName: 'userId' }, // Column for Student
+  })
+  students: Student[]; // Array of students in the classroom
 }

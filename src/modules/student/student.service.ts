@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Student } from './entity';
 import { Repository } from 'typeorm';
 import { CreateStudentDTO } from './dto';
 import { generateCustomID, hashPassword } from '@utils';
 import { UpdateStudentDTO } from './dto/updateStudent.dto';
+import { Student } from './entity/student.entity';
 
 @Injectable()
 export class StudentService {

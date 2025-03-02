@@ -1,7 +1,7 @@
 import { OmitUpdateType } from '@services/openApi';
-import { Student } from '../entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Student } from '../entity/student.entity';
 
 export class CreateStudentDTO extends OmitUpdateType(Student, [
   'userId',

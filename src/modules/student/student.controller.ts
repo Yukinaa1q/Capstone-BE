@@ -5,10 +5,10 @@ import {
 } from '@services/openApi';
 import { StudentService } from './student.service';
 import { Body, Get, Post } from '@nestjs/common';
-import { Student } from './entity';
 import { CreateStudentDTO } from './dto';
 import { CurrentUser } from '@common/decorator';
 import { UpdateStudentDTO } from './dto/updateStudent.dto';
+import { Student } from './entity/student.entity';
 
 @ApiAuthController('student')
 export class StudentController {
