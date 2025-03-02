@@ -24,6 +24,14 @@ export class CourseRegistrationService {
     private readonly courseService: CourseService,
   ) {}
 
+  getRandomElements<T>(array: T[], count: number): T[] {
+    // Shuffle the array using the Fisher-Yates algorithm
+    const shuffled = array.sort(() => 0.5 - Math.random());
+
+    // Return the first `count` elements
+    return shuffled.slice(0, count);
+  }
+
   async studentPreRegP1(data: InputStudentP1RegDTO): Promise<String> {
     const checkDup = await this.studentPreRegRepository.findOne({
       where: { courseId: data.courseId, studentId: data.userId },
@@ -84,6 +92,42 @@ export class CourseRegistrationService {
         courseCode: course.course.courseCode,
         isOnline: course.isOnline,
       });
+    });
+    return result;
+  }
+
+  async viewUnregisteredRandomP1(userId: string): Promise<CourseUnRegP1DTO[]> {
+    const findAllCourse = await this.courseService.findAllCourse();
+    const findAllRegCourse = await this.studentPreRegRepository.find();
+    const findRegisteredTable = await this.studentPreRegRepository.find({
+      where: { studentId: userId },
+      relations: ['course'],
+    });
+    const courseIdArray = [];
+    const result: CourseUnRegP1DTO[] = [];
+    findRegisteredTable.forEach((course) => {
+      courseIdArray.push(course.courseId);
+    });
+    const courseCounts = findAllRegCourse.reduce((acc, record) => {
+      const { courseId } = record;
+      acc[courseId] = (acc[courseId] || 0) + 1; // Count occurrences
+      return acc;
+    }, {});
+    const randomUnregisteredCourses = this.getRandomElements(findAllCourse, 5);
+    randomUnregisteredCourses.forEach((course) => {
+      if (!courseIdArray.includes(course.courseId)) {
+        const totalRegistrationNumber = courseCounts[course.courseId] || 0;
+        result.push({
+          courseId: course.courseId,
+          courseTitle: course.courseTitle,
+          courseImage: course.courseImage,
+          coursePrice: course.coursePrice,
+          isRegistered: false,
+          courseCode: course.courseCode,
+          registrationDate: 'default',
+          totalRegistrationNumber: totalRegistrationNumber,
+        });
+      }
     });
     return result;
   }
