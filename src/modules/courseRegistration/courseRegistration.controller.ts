@@ -1,7 +1,12 @@
-import { ApiAuthController, ApiResponseString } from '@services/openApi';
-import { CourseRegistrationService } from './courseRegistration.service';
-import { Body, Delete, Get, Post } from '@nestjs/common';
 import {
+  ApiAuthController,
+  ApiResponseArray,
+  ApiResponseString,
+} from '@services/openApi';
+import { CourseRegistrationService } from './courseRegistration.service';
+import { Body, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  CourseUnRegP1DTO,
   InputStudentP1RegDTO,
   InputTutorP1RegDTO,
   UnregisterStudentP1,
@@ -24,6 +29,22 @@ export class Phase1RegisterController {
   @ApiResponseString()
   async registerTutorP1(@Body() data: InputTutorP1RegDTO): Promise<String> {
     return this.registrationService.tutorPreRegP1(data);
+  }
+
+  @Get('random-5-courses/:id')
+  @ApiResponseArray(CourseUnRegP1DTO)
+  async viewRandomUnregisteredCourse(
+    @Param('id') id: string,
+  ): Promise<CourseUnRegP1DTO[]> {
+    return this.registrationService.viewUnregisteredRandomP1(id);
+  }
+
+  @Get('unregister-course-p1/:id')
+  @ApiResponseArray(CourseUnRegP1DTO)
+  async viewUnregisteredCourseP1(
+    @Param('id') id: string,
+  ): Promise<CourseUnRegP1DTO[]> {
+    return this.registrationService.viewUnregisteredStudentP1(id);
   }
 
   @Delete('student')
