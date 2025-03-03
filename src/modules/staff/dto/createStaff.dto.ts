@@ -1,13 +1,7 @@
 import { OmitUpdateType } from '@services/openApi';
-import { Staff, staffRole } from '../entity';
+import { Staff, staffRole, Role } from '../entity';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsEmail,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateStaffDTO extends OmitUpdateType(Staff, [
   'userId',
@@ -24,8 +18,12 @@ export class CreateStaffDTO extends OmitUpdateType(Staff, [
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    enum: staffRole,
+    description: 'Staff role type',
+    example: staffRole.ACADEMIC,
+  })
   @IsEnum(staffRole)
   @IsNotEmpty()
-  role: staffRole;
+  role: Role;
 }

@@ -24,7 +24,7 @@ export class StaffService {
   }
 
   async createStaff(data: CreateStaffDTO): Promise<Staff> {
-    if (!Object.values(staffRole).includes(data.role)) {
+    if (!Object.values(staffRole).includes(data.role as staffRole)) {
       throw new BadRequestException('Invalid staff role');
     }
 
@@ -45,6 +45,13 @@ export class StaffService {
   }
 
   async editStaffInfo(userId: string, data: UpdateStaffDTO): Promise<Staff> {
+    if (
+      data.role &&
+      !Object.values(staffRole).includes(data.role as staffRole)
+    ) {
+      throw new BadRequestException('Invalid staff role');
+    }
+
     if (data.password) {
       data.password = await hashPassword(data.password);
     }
