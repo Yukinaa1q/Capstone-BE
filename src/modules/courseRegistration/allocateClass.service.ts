@@ -122,6 +122,34 @@ export class AllocateClassService {
     });
   }
 
+  // async createClass(): Promise<void> {
+  //   const getAllReg = await this.tutorPreRegRepository.find({
+  //     order: { createdTime: 'ASC' },
+  //   }); // Có thể dùng populate để lấy thêm thông tin của course dựa vào courseId
+
+  //   let getRooms = await this.roomRepository.find({
+  //     where: { occupied: false },
+  //   }); // lấy tất cả các phòng trống => hạn chế truy cập vào database.
+
+  //   for (const registration of getAllReg) {
+  //     const roomie = getRooms.pop();
+  //     const createClassroomDTO = {
+  //       courseTitle: registration.courseTitle,
+  //       courseCode: registration.courseCode,
+  //       maxStudents: 30,
+  //       classCode: classCode, // chắc classCode cũng tự tạo luôn :>>
+  //       studyWeek: option.studyWeek,
+  //       studyShift: option.studyShift,
+  //       isOnline: roomie ? false : true,
+  //       courseId: registration.courseId,
+  //       classRoom: roomie ?? 'None',
+  //       currentStudents: 0,
+  //       tutorId: '',
+  //     };
+  //     // Một repository để add cũng cái class createClassroomDTO đã tạo...
+  //   }
+  // }
+
   async studentDividedToClass(): Promise<void> {
     const getCourse = await this.studentPreRegRepository.find();
     const distinctCourseIds = [

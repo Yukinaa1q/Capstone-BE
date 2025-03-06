@@ -66,6 +66,37 @@ export class CourseRegistrationService {
     return 'You have successfully registered';
   }
 
+  /**
+   * async tutorPreRegP1(data: InputTutorP1RegDTO): Promise<string> {
+   *   registrationList: TutorPreReg[] = []
+   *   if (data.evenTimeShift && data.evenTimeShift.length > 0) {
+   *     data.evenTimeShift.forEach((timeShift) => {
+   *       registrationList.push({
+   *         courseId: data.courseId,
+   *         tutorId: data.userId,
+   *         studyWeek: '2-4-6',
+   *         timeShift: timeShift,
+   *         createdTime: new Date(),
+   *       });
+   *     }
+   *   if (data.oddTimeShift && data.oddTimeShift.length > 0) {
+   *    data.oddTimeShift.forEach((timeShift) => {
+   *      registrationList.push({
+   *        courseId: data.courseId,
+   *        tutorId: data.userId,
+   *        studyWeek: '3-5-7',
+   *        timeShift: timeShift,
+   *        createdTime: new Date(),
+   *      });
+   *    })
+   *   }
+   * 
+   *   // Gọi hàm save của repository để lưu dữ liệu vào database
+   *   await this.tutorPreRegRepository.save(registrationList);
+   *   return 'You have successfully registered';
+   * }
+   */
+
   async unregisterStudentP1(data: UnregisterStudentP1): Promise<string> {
     const deleteReg = await this.studentPreRegRepository.delete(data);
     return 'Successfully unregistered';

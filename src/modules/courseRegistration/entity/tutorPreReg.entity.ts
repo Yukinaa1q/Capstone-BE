@@ -50,3 +50,32 @@ export class TutorPreReg {
   @CreateDateColumn()
   createdTime?: Date = new Date();
 }
+
+/**
+ * export class TutorPreReg {
+ *  id: string;
+ *  courseId: string;
+ *  tutorId: string;
+ *  studyWeek: string: 2-4-6 | 3-5-7;
+ *  timeShift: string; 17h45 - 19h15 | 19h30 - 21h00;
+ *  createdTime: Date;
+ * }
+ * e.g:
+ * Một tutor đăng ký một môn nhiều buổi dạy giờ dạy
+ * {
+ *  id: '1',
+ *  courseId: 'CO1001',
+ *  tutorId: 'TU001',
+ *  studyWeek: '2-4-6',
+ *  timeShift: '17h45 - 19h15',
+ *  ...
+ * },
+ * {
+ *  id: '2',
+ *  courseId: 'CO1001',
+ *  tutorId: 'TU001',
+ *  studyWeek: '2-4-6',
+ *  timeShift: '19h30 - 21h00',
+ *  ...
+ * }
+ */
