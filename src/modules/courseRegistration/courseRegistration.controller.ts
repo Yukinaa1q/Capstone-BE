@@ -10,6 +10,7 @@ import {
 } from './courseRegistration.service';
 import { Body, Delete, Get, Param, Post, Query } from '@nestjs/common';
 import {
+  CourseRegP1DTO,
   CourseUnRegP1DTO,
   InputStudentP1RegDTO,
   InputTutorP1RegDTO,
@@ -37,6 +38,17 @@ export class Phase1RegisterController {
     return this.registrationService.tutorPreRegP1(data);
   }
 
+  @Get('registered-course-p1')
+  @ApiResponseObject(ResponseViewApi)
+  async viewRegisteredCourseP1(
+    @CurrentUser() user: any,
+  ): Promise<CourseRegP1DTO[]> {
+    return this.registrationService.viewRegisteredStudentP1(
+      user.userId,
+      user.role,
+    );
+  }
+
   @Get('random-5-courses/:id')
   @ApiResponseArray(CourseUnRegP1DTO)
   async viewRandomUnregisteredCourse(
@@ -56,7 +68,7 @@ export class Phase1RegisterController {
     meta: PaginationMeta;
   }> {
     return this.registrationService.viewUnregisteredP1(
-      user.id,
+      user.userId,
       user.role,
       page,
       limit,
@@ -74,7 +86,7 @@ export class Phase1RegisterController {
     meta: PaginationMeta;
   }> {
     return this.registrationService.viewUnregisteredP1(
-      user.id,
+      user.userId,
       user.role,
       page,
       limit,

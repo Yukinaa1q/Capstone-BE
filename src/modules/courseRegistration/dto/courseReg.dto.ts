@@ -33,12 +33,15 @@ export class CourseUnRegP1DTO extends CourseRegDTO {
   registrationDate: string;
 
   @IsNumber()
-  totalRegistrationNumber: number;
+  totalRegistration: number;
 }
 
 export class CourseRegP1DTO extends CourseRegDTO {
   @IsBoolean()
   isOnline: boolean;
+
+  @IsNumber()
+  totalRegistration: number;
 }
 
 export class CourseRegP2DTO extends CourseRegDTO {
