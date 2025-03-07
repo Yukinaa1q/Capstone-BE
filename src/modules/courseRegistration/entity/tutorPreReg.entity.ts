@@ -1,3 +1,4 @@
+import { Course } from '@modules/course/entity/course.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
@@ -11,6 +12,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -21,6 +24,10 @@ export class TutorPreReg {
   @Transform(({ value }) => value?.toString(), { toPlainOnly: true })
   @IsUUID()
   id: string;
+
+  @ManyToOne(() => Course, (course) => course.courseId, { eager: true })
+  @JoinColumn({ name: 'courseId' })
+  course: Course;
 
   @Column()
   @ApiProperty()

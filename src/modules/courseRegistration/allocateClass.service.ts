@@ -10,7 +10,7 @@ import { Classroom } from '@modules/class/entity/class.entity';
 import { ClassroomService } from '@modules/class/class.service';
 import { CreateClassroomDTO } from '@modules/class/dto/createClassroom.dto';
 import { Course } from '@modules/course/entity/course.entity';
-import { generateCustomID } from '@utils';
+import { generateCustomID, hasThreeMatchingAttributes } from '@utils';
 import { Room } from './entity/room.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
@@ -35,7 +35,7 @@ export class AllocateClassService {
 
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async handleStudentDividedCron() {
-    await this.allocateTutortoClass();
+    await this.createClass();
     await this.studentDividedToClass();
   }
 
@@ -120,6 +120,101 @@ export class AllocateClassService {
         }
       });
     });
+  }
+
+  async createClass(): Promise<void> {
+    const getAllReg = await this.tutorPreRegRepository.find({
+      order: { createdTime: 'ASC' },
+    });
+
+    let getRooms = await this.roomRepository.find({
+      where: { occupied: false },
+    });
+    const checkSameTime = [];
+    for (const registration of getAllReg) {
+      const classCode = await this.generateClassesCode();
+      let sWeek = '';
+      let sShift = '';
+
+      if (registration.evenTimeShift) {
+        sWeek = '2-4-6';
+        if (registration.evenTimeShift.length == 2) {
+          sShift = registration.evenTimeShift[0];
+          const checkMatchingClass = hasThreeMatchingAttributes(checkSameTime, {
+            courseId: registration.courseId,
+            sShift: sShift,
+            sWeek: sWeek,
+          });
+          if (checkMatchingClass) {
+            sShift = registration.evenTimeShift[1];
+          }
+        }
+      } else if (registration.oddTimeShift) {
+        sWeek = '3-5-7';
+        if (registration.evenTimeShift.length == 2) {
+          sShift = registration.evenTimeShift[0];
+          const checkMatchingClass = hasThreeMatchingAttributes(checkSameTime, {
+            courseId: registration.courseId,
+            sShift: sShift,
+            sWeek: sWeek,
+          });
+          if (checkMatchingClass) {
+            sShift = registration.evenTimeShift[1];
+          }
+        }
+      }
+
+      let isOnl = true;
+      if (sWeek == '2-4-6') {
+        isOnl = true;
+      } else if (sWeek == '3-5-7') {
+        isOnl = false;
+      }
+
+      const checkMatchingShift = hasThreeMatchingAttributes(checkSameTime, {
+        tutorId: registration.tutorId,
+        sShift: sShift,
+        sWeek: sWeek,
+      });
+
+      const checkMatchingClass = hasThreeMatchingAttributes(checkSameTime, {
+        courseId: registration.courseId,
+        sShift: sShift,
+        sWeek: sWeek,
+      });
+
+      if (checkMatchingShift || checkMatchingClass) {
+        continue;
+      }
+      const roomie = getRooms.pop();
+      if (!roomie) {
+        isOnl = false;
+      }
+      checkSameTime.push({
+        tutorId: registration.tutorId,
+        courseId: registration.courseId,
+        sShift: sShift,
+        sWeek: sWeek,
+      });
+
+      const createClassroomDTO = {
+        courseTitle: registration.course.courseTitle,
+        courseCode: registration.course.courseCode,
+        maxStudents: 30,
+        classCode: classCode, // chắc classCode cũng tự tạo luôn :>>
+        studyWeek: sWeek,
+        studyShift: sShift,
+        isOnline: isOnl,
+        courseId: registration.courseId,
+        classRoom: roomie.roomCode ?? 'None',
+        currentStudents: 0,
+        tutorId: registration.tutorId,
+      };
+      const newClassroom = this.classroomRepository.create(createClassroomDTO);
+      await this.classroomRepository.save(newClassroom);
+      registration.course.classrooms.push(newClassroom);
+      await this.courseRepository.save(registration.course);
+    }
   }
 
   async studentDividedToClass(): Promise<void> {

@@ -14,6 +14,13 @@ import { ResponseCode, ServiceException } from '@common/error';
 import { TutorPreReg } from './entity/tutorPreReg.entity';
 import { CourseService } from '@modules/course/course.service';
 
+export class PaginationMeta {
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  itemsPerPage: number;
+}
+
 @Injectable()
 export class CourseRegistrationService {
   constructor(
@@ -76,11 +83,24 @@ export class CourseRegistrationService {
     return 'Successfully unregistered';
   }
 
-  async viewRegisteredStudentP1(userId: string): Promise<CourseRegP1DTO[]> {
-    const findAllViewCourse = await this.studentPreRegRepository.find({
-      where: { studentId: userId },
-      relations: ['course'],
-    });
+  async viewRegisteredStudentP1(
+    userId: string,
+    role: string,
+    page: number = 1, // Default to page 1
+    limit: number = 10,
+  ): Promise<{ data: CourseRegP1DTO[]; meta: PaginationMeta }> {
+    let findAllViewCourse = [];
+    if (role == 'student') {
+      findAllViewCourse = await this.studentPreRegRepository.find({
+        where: { studentId: userId },
+        relations: ['course'],
+      });
+    } else {
+      findAllViewCourse = await this.tutorPreRegRepository.find({
+        where: { tutorId: userId },
+        relations: ['course'],
+      });
+    }
     const result: CourseRegP1DTO[] = [];
     findAllViewCourse.forEach((course) => {
       result.push({
@@ -93,7 +113,22 @@ export class CourseRegistrationService {
         isOnline: course.isOnline,
       });
     });
-    return result;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedResults = result.slice(startIndex, endIndex);
+
+    const totalItems = result.length;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+      data: paginatedResults,
+      meta: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        itemsPerPage: limit,
+      },
+    };
   }
 
   async viewUnregisteredRandomP1(userId: string): Promise<CourseUnRegP1DTO[]> {
@@ -132,13 +167,27 @@ export class CourseRegistrationService {
     return result;
   }
 
-  async viewUnregisteredStudentP1(userId: string): Promise<CourseUnRegP1DTO[]> {
+  async viewUnregisteredP1(
+    userId: string,
+    role: string,
+    page: number = 1, // Default to page 1
+    limit: number = 10, // Default to 10 items per page
+  ): Promise<{ data: CourseUnRegP1DTO[]; meta: PaginationMeta }> {
     const findAllCourse = await this.courseService.findAllCourse();
     const findAllRegCourse = await this.studentPreRegRepository.find();
-    const findRegisteredTable = await this.studentPreRegRepository.find({
-      where: { studentId: userId },
-      relations: ['course'],
-    });
+    let findRegisteredTable = [];
+    if (role == 'student') {
+      findRegisteredTable = await this.studentPreRegRepository.find({
+        where: { studentId: userId },
+        relations: ['course'],
+      });
+    } else {
+      findRegisteredTable = await this.tutorPreRegRepository.find({
+        where: { tutorId: userId },
+        relations: ['course'],
+      });
+    }
+
     const courseIdArray = [];
     const result: CourseUnRegP1DTO[] = [];
     findRegisteredTable.forEach((course) => {
@@ -164,6 +213,23 @@ export class CourseRegistrationService {
         });
       }
     });
-    return result;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedResults = result.slice(startIndex, endIndex);
+
+    const totalItems = result.length;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+      data: paginatedResults,
+      meta: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        itemsPerPage: limit,
+      },
+    };
   }
+
+  // async viewAllocatedClasses(userId: string, role: string);
 }

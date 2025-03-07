@@ -1,17 +1,23 @@
 import {
   ApiAuthController,
   ApiResponseArray,
+  ApiResponseObject,
   ApiResponseString,
 } from '@services/openApi';
-import { CourseRegistrationService } from './courseRegistration.service';
-import { Body, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  CourseRegistrationService,
+  PaginationMeta,
+} from './courseRegistration.service';
+import { Body, Delete, Get, Param, Post, Query } from '@nestjs/common';
 import {
   CourseUnRegP1DTO,
   InputStudentP1RegDTO,
   InputTutorP1RegDTO,
+  ResponseViewApi,
   UnregisterStudentP1,
   UnregisterTutorP1,
 } from './dto';
+import { CurrentUser } from '@common/decorator';
 
 @ApiAuthController('phase1_register')
 export class Phase1RegisterController {
@@ -39,12 +45,40 @@ export class Phase1RegisterController {
     return this.registrationService.viewUnregisteredRandomP1(id);
   }
 
-  @Get('unregister-course-p1/:id')
-  @ApiResponseArray(CourseUnRegP1DTO)
+  @Get('unregister-course-p1')
+  @ApiResponseObject(ResponseViewApi)
   async viewUnregisteredCourseP1(
-    @Param('id') id: string,
-  ): Promise<CourseUnRegP1DTO[]> {
-    return this.registrationService.viewUnregisteredStudentP1(id);
+    @CurrentUser() user: any,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ): Promise<{
+    data: CourseUnRegP1DTO[];
+    meta: PaginationMeta;
+  }> {
+    return this.registrationService.viewUnregisteredP1(
+      user.id,
+      user.role,
+      page,
+      limit,
+    );
+  }
+
+  @Get('unregister-course-p1-tutor')
+  @ApiResponseObject(ResponseViewApi)
+  async viewUnregisteredCourseP1Tutor(
+    @CurrentUser() user: any,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ): Promise<{
+    data: CourseUnRegP1DTO[];
+    meta: PaginationMeta;
+  }> {
+    return this.registrationService.viewUnregisteredP1(
+      user.id,
+      user.role,
+      page,
+      limit,
+    );
   }
 
   @Delete('student')

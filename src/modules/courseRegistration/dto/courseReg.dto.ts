@@ -2,9 +2,11 @@ import {
   IsArray,
   IsBoolean,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
 } from 'class-validator';
+import { PaginationMeta } from '../courseRegistration.service';
 
 export class CourseRegDTO {
   @IsString()
@@ -100,4 +102,12 @@ export class UnregisterTutorP1 {
 
   @IsString()
   tutorId: string;
+}
+
+export class ResponseViewApi {
+  @IsArray()
+  data: UnregisterStudentP1[];
+
+  @IsObject()
+  meta: PaginationMeta;
 }
