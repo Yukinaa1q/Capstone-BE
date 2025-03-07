@@ -42,6 +42,7 @@ export class ClassroomService {
       tutorId: findTutor.userId,
       courseId: findCourse.courseId,
       students: findStudents,
+      currentStudents: findStudents.length,
       ...data,
     });
     await this.classroomRepository.save(newClass);
@@ -52,16 +53,29 @@ export class ClassroomService {
     classId: string,
     data: UpdateClassroomDTO,
   ): Promise<Classroom> {
-    delete data.studentIdList;
     const findTutor = await this.tutorRepository.findOne({
       where: { tutorCode: data.tutorCode },
     });
     const findCourse = await this.courseService.findOneCourse(data.courseCode);
     data.tutorId = findTutor.userId;
     data.courseId = findCourse.courseId;
-    delete data.tutorCode;
-    delete data.courseCode;
-    await this.classroomRepository.update(classId, data);
+    if (data.studentIdList) {
+      const findStudents = await this.studentRepo.findBy({
+        userId: In(data.studentIdList),
+      });
+      data.students = findStudents;
+      delete data.studentIdList;
+    }
+    const findClass = await this.classroomRepository.findOne({
+      where: { classId: classId },
+    });
+
+    findClass.currentStudents = data.students.length;
+
+    await this.classroomRepository.save({
+      ...findClass,
+      ...data,
+    });
     const updateClass = await this.classroomRepository.findOne({
       where: { classId: classId },
     });
@@ -87,7 +101,7 @@ export class ClassroomService {
     const findClass = await this.classroomRepository.findOne({
       where: { classCode: classId },
     });
-    console.log(findClass);
+    // console.log(findClass);
     const result = {} as ViewClassDetailDTO;
     result.courseTitle = findClass.course.courseTitle;
     result.courseCode = findClass.courseCode;
@@ -103,12 +117,13 @@ export class ClassroomService {
     result.classId = findClass.classId;
     result.learningType = findClass.isOnline;
     result.classCode = findClass.classCode;
-    result.classStudents = findClass.maxStudents;
+    result.classStudents = findClass.currentStudents;
     result.classMaxStudents = findClass.maxStudents;
     result.studentList = findClass.students.map((student) => {
       return {
         studentName: student.name,
-        studentId: student.studentCode,
+        studentId: student.userId,
+        studentCode: student.studentCode,
         avatarLink: student.avatarUrl,
       };
     });

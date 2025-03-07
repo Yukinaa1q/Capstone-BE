@@ -16,9 +16,7 @@ export class Student extends User {
   @IsString()
   studentCode?: string;
 
-  @ManyToMany(() => Classroom, (classroom) => classroom.students, {
-    eager: true,
-  })
+  @ManyToMany(() => Classroom, (classroom) => classroom.students)
   classrooms: Classroom[]; // Array of classrooms the student belongs to
 
   constructor(partial: Partial<User>) {
