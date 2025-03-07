@@ -1,12 +1,10 @@
-import { Module } from '@nestjs/common';
-import { AppFeaturesModule } from './modules';
-import { ConfigModule } from '@config';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { GuardModule } from '@common/guard';
-import { CloudinaryModule } from '@services/cloudinary';
-import { Classroom } from '@modules/class/entity/class.entity';
-import { Tutor } from '@modules/tutor/entity/tutor.entity';
+import { ConfigModule } from '@config';
+import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { CloudinaryModule } from '@services/cloudinary';
+import { AppFeaturesModule } from './modules';
 
 @Module({
   imports: [
@@ -20,8 +18,8 @@ import { ScheduleModule } from '@nestjs/schedule';
       host: 'localhost',
       port: 5431,
       username: 'postgres',
-      password: '30092003',
-      database: 'Tucour',
+      password: '20072003',
+      database: 'tucour',
       // entities: ['dist/modules/*/entity/*.entity.js'],
       autoLoadEntities: true,
       synchronize: true,

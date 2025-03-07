@@ -103,7 +103,7 @@ export class Classroom {
   @Column({ nullable: false })
   courseId: string;
 
-  @ManyToMany(() => Student, (student) => student.classrooms)
+  @ManyToMany(() => Student, (student) => student.classrooms, { eager: true })
   @JoinTable({
     name: 'classroom_student', // Name of the join table
     joinColumn: { name: 'classroomId', referencedColumnName: 'classId' }, // Column for Classroom

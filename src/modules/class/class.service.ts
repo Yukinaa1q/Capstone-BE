@@ -1,14 +1,15 @@
+import { ResponseCode, ServiceException } from '@common/error';
+import { CourseService } from '@modules/course/course.service';
+import { Student } from '@modules/student/entity/student.entity';
+import { Tutor } from '@modules/tutor/entity/tutor.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ResponseCode, ServiceException } from '@common/error';
-import { UpdateClassroomDTO } from './dto/updateClassroom.dto';
-import { Classroom } from './entity/class.entity';
+import { In, Repository } from 'typeorm';
 import { CreateClassroomDTO } from './dto/createClassroom.dto';
+import { UpdateClassroomDTO } from './dto/updateClassroom.dto';
 import { ViewAllClassroomDTO } from './dto/viewAllClassroom.dto';
 import { ViewClassDetailDTO } from './dto/viewClassDetail.dto';
-import { Tutor } from '@modules/tutor/entity/tutor.entity';
-import { CourseService } from '@modules/course/course.service';
+import { Classroom } from './entity/class.entity';
 
 @Injectable()
 export class ClassroomService {
@@ -17,6 +18,8 @@ export class ClassroomService {
     private readonly classroomRepository: Repository<Classroom>,
     @InjectRepository(Tutor)
     private readonly tutorRepository: Repository<Tutor>,
+    @InjectRepository(Student)
+    private readonly studentRepo: Repository<Student>,
     private readonly courseService: CourseService,
   ) {}
 
@@ -32,9 +35,13 @@ export class ClassroomService {
       where: { tutorCode: data.tutorCode },
     });
     const findCourse = await this.courseService.findOneCourse(data.courseCode);
+    const findStudents = await this.studentRepo.findBy({
+      userId: In(data.studentIdList),
+    });
     const newClass = this.classroomRepository.create({
       tutorId: findTutor.userId,
       courseId: findCourse.courseId,
+      students: findStudents,
       ...data,
     });
     await this.classroomRepository.save(newClass);
@@ -80,6 +87,7 @@ export class ClassroomService {
     const findClass = await this.classroomRepository.findOne({
       where: { classCode: classId },
     });
+    console.log(findClass);
     const result = {} as ViewClassDetailDTO;
     result.courseTitle = findClass.course.courseTitle;
     result.courseCode = findClass.courseCode;
@@ -97,11 +105,18 @@ export class ClassroomService {
     result.classCode = findClass.classCode;
     result.classStudents = findClass.maxStudents;
     result.classMaxStudents = findClass.maxStudents;
+    result.studentList = findClass.students.map((student) => {
+      return {
+        studentName: student.name,
+        studentId: student.studentCode,
+        avatarLink: student.avatarUrl,
+      };
+    });
     return result;
   }
 
   async deleteClass(classId: string): Promise<string> {
-    const deleteClass = await this.classroomRepository.delete(classId);
+    await this.classroomRepository.delete(classId);
     return 'The class is successfully deleted';
   }
 

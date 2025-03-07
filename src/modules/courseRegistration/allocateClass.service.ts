@@ -1,18 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { TutorPreReg } from './entity/tutorPreReg.entity';
-import { Repository } from 'typeorm';
-import { StudentPreReg } from './entity/studentPreReg.entity';
-import { CourseService } from '@modules/course/course.service';
-import { Tutor } from '@modules/tutor/entity/tutor.entity';
-import { Student } from '@modules/student/entity/student.entity';
 import { Classroom } from '@modules/class/entity/class.entity';
-import { ClassroomService } from '@modules/class/class.service';
-import { CreateClassroomDTO } from '@modules/class/dto/createClassroom.dto';
 import { Course } from '@modules/course/entity/course.entity';
-import { generateCustomID, hasThreeMatchingAttributes } from '@utils';
-import { Room } from './entity/room.entity';
+import { Student } from '@modules/student/entity/student.entity';
+import { Tutor } from '@modules/tutor/entity/tutor.entity';
+import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { InjectRepository } from '@nestjs/typeorm';
+import { generateCustomID, hasThreeMatchingAttributes } from '@utils';
+import { Repository } from 'typeorm';
+import { Room } from './entity/room.entity';
+import { StudentPreReg } from './entity/studentPreReg.entity';
+import { TutorPreReg } from './entity/tutorPreReg.entity';
 
 @Injectable()
 export class AllocateClassService {
@@ -71,7 +68,7 @@ export class AllocateClassService {
       });
       timeStudyShift.forEach(async (option) => {
         const classCode = await this.generateClassesCode();
-        let getRoom = await this.roomRepository.findOne({
+        const getRoom = await this.roomRepository.findOne({
           where: { occupied: false },
         });
         if (!getRoom) {
@@ -127,7 +124,7 @@ export class AllocateClassService {
       order: { createdTime: 'ASC' },
     });
 
-    let getRooms = await this.roomRepository.find({
+    const getRooms = await this.roomRepository.find({
       where: { occupied: false },
     });
     const checkSameTime = [];
