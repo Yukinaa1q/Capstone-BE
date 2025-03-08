@@ -46,7 +46,6 @@ export class CourseRegistrationService {
     const checkDup = await this.studentPreRegRepository.findOne({
       where: { courseId: data.courseId, studentId: data.userId },
     });
-
     if (checkDup) {
       throw new ServiceException(
         ResponseCode.REGISTERED_COURSE,
@@ -54,7 +53,10 @@ export class CourseRegistrationService {
       );
     }
 
-    const newReg = this.studentPreRegRepository.create(data);
+    const newReg = this.studentPreRegRepository.create({
+      ...data,
+      studentId: data.userId,
+    });
     await this.studentPreRegRepository.save(newReg);
     return 'You have successfully registered';
   }
