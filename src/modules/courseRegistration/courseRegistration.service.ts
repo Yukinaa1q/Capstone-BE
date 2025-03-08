@@ -88,7 +88,7 @@ export class CourseRegistrationService {
 
   async viewRegisteredStudentP1(
     userId: string,
-    role: string, // Default to page 1
+    role: string,
   ): Promise<CourseRegP1DTO[]> {
     console.log(userId, role);
     let findAllViewCourse = [];
@@ -104,6 +104,12 @@ export class CourseRegistrationService {
       findAllViewCourse = await this.tutorPreRegRepository.find({
         where: { tutorId: userId },
         relations: ['course'],
+      });
+      const getStudentCourses = findAllViewCourse.map((course) => {
+        return course.courseId;
+      });
+      findAllRegisterdStudents = await this.studentPreRegRepository.findBy({
+        courseId: In(getStudentCourses),
       });
     }
     const courseCounts = findAllRegisterdStudents.reduce((acc, record) => {
@@ -228,6 +234,4 @@ export class CourseRegistrationService {
       },
     };
   }
-
-  // async viewAllocatedClasses(userId: string, role: string);
 }
