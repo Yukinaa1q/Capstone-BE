@@ -196,7 +196,7 @@ export class CourseRegistrationService {
         relations: ['course'],
       });
     } else {
-      findAllRegCourse = await this.tutorPreRegRepository.find();
+      findAllRegCourse = await this.studentPreRegRepository.find();
       findRegisteredTable = await this.tutorPreRegRepository.find({
         where: { tutorId: userId },
         relations: ['course'],
