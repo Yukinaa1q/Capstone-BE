@@ -80,7 +80,7 @@ export class InputTutorP1RegDTO {
   courseId: string;
 
   @IsString()
-  userId: string;
+  tutorId: string;
 
   @IsArray()
   @IsOptional()
@@ -109,7 +109,7 @@ export class UnregisterTutorP1 {
 
 export class ResponseViewApi {
   @IsArray()
-  data: UnregisterStudentP1[];
+  data: CourseUnRegP1DTO[];
 
   @IsObject()
   meta: PaginationMeta;

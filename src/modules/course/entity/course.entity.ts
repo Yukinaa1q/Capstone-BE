@@ -95,4 +95,10 @@ export class Course {
   @ApiHideProperty()
   @OneToMany(() => Classroom, (classroom) => classroom.course)
   classrooms: Classroom[];
+
+  @Column({ default: [], type: 'varchar', array: true })
+  @IsArray()
+  @ApiPropertyOptional()
+  @IsOptional()
+  classes?: string[];
 }

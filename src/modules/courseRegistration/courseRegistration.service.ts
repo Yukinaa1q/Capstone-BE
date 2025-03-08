@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { StudentPreReg } from './entity/studentPreReg.entity';
-import { In, Not, Repository } from 'typeorm';
+import { In, Like, Not, Repository } from 'typeorm';
 import {
   CourseRegP1DTO,
   CourseUnRegP1DTO,
@@ -52,6 +52,11 @@ export class CourseRegistrationService {
         'You have registered this course',
       );
     }
+    const findCourse = await this.courseRepository.findOne({
+      where: { courseId: data.courseId },
+    });
+    findCourse.participantNumber = findCourse.participantNumber + 1;
+    await this.courseRepository.save(findCourse);
 
     const newReg = this.studentPreRegRepository.create({
       ...data,
@@ -63,7 +68,7 @@ export class CourseRegistrationService {
 
   async tutorPreRegP1(data: InputTutorP1RegDTO): Promise<string> {
     const checkDup = await this.tutorPreRegRepository.findOne({
-      where: { courseId: data.courseId, tutorId: data.userId },
+      where: { courseId: data.courseId, tutorId: data.tutorId },
     });
 
     if (checkDup) {
@@ -75,14 +80,25 @@ export class CourseRegistrationService {
 
     const newReg = this.tutorPreRegRepository.create({
       ...data,
-      tutorId: data.userId,
+      tutorId: data.tutorId,
     });
     await this.tutorPreRegRepository.save(newReg);
     return 'You have successfully registered';
   }
 
   async unregisterStudentP1(data: UnregisterStudentP1): Promise<string> {
-    const deleteReg = await this.studentPreRegRepository.delete(data);
+    const findDel = await this.studentPreRegRepository.findOne({
+      where: {
+        courseId: data.courseId,
+        studentId: data.studentId,
+      },
+    });
+    const findCourse = await this.courseRepository.findOne({
+      where: { courseId: data.courseId },
+    });
+    findCourse.participantNumber -= 1;
+    await this.courseRepository.save(findCourse);
+    const deleteReg = await this.studentPreRegRepository.delete(findDel.id);
     return 'Successfully unregistered';
   }
 
@@ -95,7 +111,6 @@ export class CourseRegistrationService {
     userId: string,
     role: string,
   ): Promise<CourseRegP1DTO[]> {
-    console.log(userId, role);
     let findAllViewCourse = [];
     let findAllRegisterdStudents = [];
     if (role == 'student') {
@@ -145,48 +160,10 @@ export class CourseRegistrationService {
     return result;
   }
 
-  async viewUnregisteredRandomP1(userId: string): Promise<CourseUnRegP1DTO[]> {
-    const findAllCourse = await this.courseService.findAllCourse();
-    const findAllRegCourse = await this.studentPreRegRepository.find();
-    const findRegisteredTable = await this.studentPreRegRepository.find({
-      where: { studentId: userId },
-      relations: ['course'],
-    });
-    const courseIdArray = [];
-    const result: CourseUnRegP1DTO[] = [];
-    findRegisteredTable.forEach((course) => {
-      courseIdArray.push(course.courseId);
-    });
-    const courseCounts = findAllRegCourse.reduce((acc, record) => {
-      const { courseId } = record;
-      acc[courseId] = (acc[courseId] || 0) + 1; // Count occurrences
-      return acc;
-    }, {});
-    const randomUnregisteredCourses = this.getRandomElements(findAllCourse, 5);
-    randomUnregisteredCourses.forEach((course) => {
-      if (!courseIdArray.includes(course.courseId)) {
-        const totalRegistrationNumber = courseCounts[course.courseId] || 0;
-        result.push({
-          courseId: course.courseId,
-          courseTitle: course.courseTitle,
-          courseImage: course.courseImage,
-          coursePrice: course.coursePrice,
-          isRegistered: false,
-          courseCode: course.courseCode,
-          registrationDate: 'default',
-          totalRegistration: totalRegistrationNumber,
-        });
-      }
-    });
-    return result;
-  }
-
-  async viewUnregisteredP1(
+  async viewUnregisteredRandomP1(
     userId: string,
     role: string,
-    page: number = 1, // Default to page 1
-    limit: number = 10, // Default to 10 items per page
-  ): Promise<{ data: CourseUnRegP1DTO[]; meta: PaginationMeta }> {
+  ): Promise<CourseUnRegP1DTO[]> {
     let findRegisteredTable = [];
     let findAllRegCourse = [];
     if (role == 'student') {
@@ -207,6 +184,96 @@ export class CourseRegistrationService {
       courseId: Not(In(findRegisteredTable.map((course) => course.courseId))),
     });
 
+    const getRandom = this.getRandomElements(findAllCourse, 5);
+
+    const courseCounts = findAllRegCourse.reduce((acc, record) => {
+      const { courseId } = record;
+      acc[courseId] = (acc[courseId] || 0) + 1; // Count occurrences
+      return acc;
+    }, {});
+    // let result = [];
+    const result = getRandom.map((course) => {
+      const totalRegistrationNumber = courseCounts[course.courseId] || 0;
+      return {
+        courseId: course.courseId,
+        courseTitle: course.courseTitle,
+        courseImage: course.courseImage,
+        coursePrice: course.coursePrice,
+        isRegistered: false,
+        courseCode: course.courseCode,
+        registrationDate: 'default',
+        totalRegistration: totalRegistrationNumber,
+      };
+    });
+    return result;
+  }
+
+  async viewUnregisteredP1(
+    userId: string,
+    role: string,
+    page: number = 1, // Default to page 1
+    limit: number = 10, // Default to 10 items per page
+    search: string = '',
+  ): Promise<{ data: CourseUnRegP1DTO[]; meta: PaginationMeta }> {
+    let findRegisteredTable = [];
+    let findAllRegCourse = [];
+    if (role == 'student') {
+      findAllRegCourse = await this.studentPreRegRepository.find();
+      findRegisteredTable = await this.studentPreRegRepository.find({
+        where: { studentId: userId },
+        relations: ['course'],
+      });
+    } else {
+      findAllRegCourse = await this.studentPreRegRepository.find();
+      findRegisteredTable = await this.tutorPreRegRepository.find({
+        where: { tutorId: userId },
+        relations: ['course'],
+      });
+    }
+
+    const registeredCourseIds = findRegisteredTable.map(
+      (course) => course.courseId,
+    );
+    // const query = await this.courseRepository
+    //   .createQueryBuilder('course')
+    //   .where('course.courseId NOT IN (:...registeredCourseIds)', {
+    //     registeredCourseIds,
+    //   });
+    //   // .andWhere('LOWER(course.courseTitle) LIKE LOWER(:search)', {
+    //   //   search: `%${search}%`,
+    //   // });
+
+    // const findAllCourse = await this.courseRepository.findBy({
+    //   courseId: Not(In(registeredCourseIds)),
+    //   courseTitle: Like(`%${search}%`),
+    // });
+
+    // const findAllCourse = await this.courseRepository.findBy({
+    //   courseId: Not(In(findRegisteredTable.map((course) => course.courseId))),
+    // });
+
+    // Build the base query for unregistered courses
+    const query = this.courseRepository.createQueryBuilder('course');
+
+    // Add NOT IN clause only if registeredCourseIds is not empty
+    if (registeredCourseIds.length > 0) {
+      query.where('course.courseId NOT IN (:...registeredCourseIds)', {
+        registeredCourseIds,
+      });
+    } else {
+      query.where('1 = 1'); // Always true condition
+    }
+
+    // Add search filter if search term is provided
+    if (search) {
+      query.andWhere('LOWER(course.courseTitle) LIKE LOWER(:search)', {
+        search: `%${search}%`,
+      });
+    }
+    const [findAllCourse, totalItems] = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
     const courseCounts = findAllRegCourse.reduce((acc, record) => {
       const { courseId } = record;
       acc[courseId] = (acc[courseId] || 0) + 1; // Count occurrences
@@ -226,15 +293,10 @@ export class CourseRegistrationService {
         totalRegistration: totalRegistrationNumber,
       };
     });
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    const paginatedResults = result.slice(startIndex, endIndex);
-
-    const totalItems = result.length;
     const totalPages = Math.ceil(totalItems / limit);
 
     return {
-      data: paginatedResults,
+      data: result,
       meta: {
         totalItems,
         totalPages,

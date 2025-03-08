@@ -30,7 +30,7 @@ export class AllocateClassService {
     private readonly roomRepository: Repository<Room>,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(CronExpression.EVERY_5_HOURS)
   async handleStudentDividedCron() {
     await this.createClass();
     await this.studentDividedToClass();
@@ -124,17 +124,15 @@ export class AllocateClassService {
       order: { createdTime: 'ASC' },
     });
 
-    const getRooms = await this.roomRepository.find({
-      where: { occupied: false },
-    });
     const checkSameTime = [];
     for (const registration of getAllReg) {
+      console.log(registration);
       const classCode = await this.generateClassesCode();
       let sWeek = '';
       let sShift = '';
-
-      if (registration.evenTimeShift) {
+      if (registration.evenTimeShift.length != 0) {
         sWeek = '2-4-6';
+        sShift = registration.evenTimeShift[0];
         if (registration.evenTimeShift.length == 2) {
           sShift = registration.evenTimeShift[0];
           const checkMatchingClass = hasThreeMatchingAttributes(checkSameTime, {
@@ -146,17 +144,18 @@ export class AllocateClassService {
             sShift = registration.evenTimeShift[1];
           }
         }
-      } else if (registration.oddTimeShift) {
+      } else if (registration.oddTimeShift.length != 0) {
         sWeek = '3-5-7';
-        if (registration.evenTimeShift.length == 2) {
-          sShift = registration.evenTimeShift[0];
+        sShift = registration.oddTimeShift[0];
+        if (registration.oddTimeShift.length == 2) {
+          sShift = registration.oddTimeShift[0];
           const checkMatchingClass = hasThreeMatchingAttributes(checkSameTime, {
             courseId: registration.courseId,
             sShift: sShift,
             sWeek: sWeek,
           });
           if (checkMatchingClass) {
-            sShift = registration.evenTimeShift[1];
+            sShift = registration.oddTimeShift[1];
           }
         }
       }
@@ -183,9 +182,18 @@ export class AllocateClassService {
       if (checkMatchingShift || checkMatchingClass) {
         continue;
       }
-      const roomie = getRooms.pop();
+
+      let roomie: Room = null;
+      if (!isOnl) {
+        const getRooms = await this.roomRepository.find({
+          where: { occupied: false },
+        });
+        roomie = getRooms.pop();
+        (roomie.occupied = true), await this.roomRepository.save(roomie);
+      }
+
       if (!roomie) {
-        isOnl = false;
+        isOnl = true;
       }
       checkSameTime.push({
         tutorId: registration.tutorId,
@@ -193,7 +201,6 @@ export class AllocateClassService {
         sShift: sShift,
         sWeek: sWeek,
       });
-
       const createClassroomDTO = {
         courseTitle: registration.course.courseTitle,
         courseCode: registration.course.courseCode,
@@ -203,18 +210,19 @@ export class AllocateClassService {
         studyShift: sShift,
         isOnline: isOnl,
         courseId: registration.courseId,
-        classRoom: roomie.roomCode ?? 'None',
+        classRoom: roomie?.roomCode ?? 'None',
         currentStudents: 0,
         tutorId: registration.tutorId,
       };
       const newClassroom = this.classroomRepository.create(createClassroomDTO);
       await this.classroomRepository.save(newClassroom);
-      registration.course.classrooms.push(newClassroom);
-      await this.courseRepository.save(registration.course);
+      // registration.course.classes.push(newClassroom.classId);
+      // await this.courseRepository.save(registration.course);
     }
   }
 
   async studentDividedToClass(): Promise<void> {
+    console.log('below func');
     const getCourse = await this.studentPreRegRepository.find();
     const distinctCourseIds = [
       ...new Set(getCourse.map((course) => course.courseId)),

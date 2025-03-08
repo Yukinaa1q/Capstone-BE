@@ -52,9 +52,12 @@ export class Phase1RegisterController {
   @Get('random-5-courses/:id')
   @ApiResponseArray(CourseUnRegP1DTO)
   async viewRandomUnregisteredCourse(
-    @Param('id') id: string,
+    @CurrentUser() user: any,
   ): Promise<CourseUnRegP1DTO[]> {
-    return this.registrationService.viewUnregisteredRandomP1(id);
+    return this.registrationService.viewUnregisteredRandomP1(
+      user.userId,
+      user.role,
+    );
   }
 
   @Get('unregister-course-p1')
@@ -63,6 +66,7 @@ export class Phase1RegisterController {
     @CurrentUser() user: any,
     @Query('page') page: number,
     @Query('limit') limit: number,
+    @Query('q') q: string,
   ): Promise<{
     data: CourseUnRegP1DTO[];
     meta: PaginationMeta;
@@ -72,6 +76,7 @@ export class Phase1RegisterController {
       user.role,
       page,
       limit,
+      q,
     );
   }
 
@@ -81,6 +86,7 @@ export class Phase1RegisterController {
     @CurrentUser() user: any,
     @Query('page') page: number,
     @Query('limit') limit: number,
+    @Query('q') q: string,
   ): Promise<{
     data: CourseUnRegP1DTO[];
     meta: PaginationMeta;
@@ -90,18 +96,19 @@ export class Phase1RegisterController {
       user.role,
       page,
       limit,
+      q,
     );
   }
 
-  @Delete('student')
+  @Delete('student/delete')
   @ApiResponseString()
   async unregisterStudentP1(
     @Body() data: UnregisterStudentP1,
-  ): Promise<String> {
+  ): Promise<string> {
     return this.registrationService.unregisterStudentP1(data);
   }
 
-  @Delete('tutor')
+  @Delete('tutor/delete')
   @ApiResponseString()
   async unregisterTutorP1(@Body() data: UnregisterTutorP1): Promise<String> {
     return this.registrationService.unregisterTutorP1(data);
