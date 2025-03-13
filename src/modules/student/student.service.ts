@@ -5,6 +5,7 @@ import { CreateStudentDTO } from './dto';
 import { generateCustomID, hashPassword } from '@utils';
 import { UpdateStudentDTO } from './dto/updateStudent.dto';
 import { Student } from './entity/student.entity';
+import { StudentListViewDTO } from './dto/studentListView.dto';
 
 @Injectable()
 export class StudentService {
@@ -54,6 +55,11 @@ export class StudentService {
   async getAllStudent(): Promise<Student[]> {
     const listStudent = await this.studentRepository.find();
     return listStudent;
+  }
+
+  async getAllStudentForTable(): Promise<StudentListViewDTO[]> {
+    const students = await this.studentRepository.find();
+    return students.map((student) => new StudentListViewDTO(student));
   }
 
   async findOneStudent(data: string): Promise<Student> {

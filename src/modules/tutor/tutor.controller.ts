@@ -10,6 +10,7 @@ import { TutorService } from './tutor.service';
 import { CreateTutorDTO } from './dto/createTutor.dto';
 import { Tutor } from './entity/tutor.entity';
 import { UpdateTutorDTO } from './dto/updateTutor.dto';
+import { TutorListViewDTO } from './dto/tutorListView.dto';
 
 @ApiAuthController('tutor')
 export class TutorController {
@@ -25,6 +26,12 @@ export class TutorController {
   @ApiResponseArray(Tutor)
   async getAllTutor(): Promise<Tutor[]> {
     return this.tutorService.getAllTutor();
+  }
+
+  @Get('all-tutor-table')
+  @ApiResponseArray(TutorListViewDTO)
+  async getAllTutorForTable(): Promise<TutorListViewDTO[]> {
+    return this.tutorService.getAllTutorForTable();
   }
 
   @Post('/update')
