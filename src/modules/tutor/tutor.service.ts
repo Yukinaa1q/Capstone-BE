@@ -44,7 +44,17 @@ export class TutorService {
 
   async getAllTutorForTable(): Promise<TutorListViewDTO[]> {
     const tutors = await this.tutorRepository.find();
-    return tutors.map((tutor) => new TutorListViewDTO(tutor));
+    const result = [];
+    tutors.forEach((tutor, index) => {
+      result[index] = {} as TutorListViewDTO;
+      result[index].tutorName = tutor.name;
+      result[index].tutorId = tutor.userId;
+      result[index].tutorCode = tutor.tutorCode;
+      result[index].tutorEmail = tutor.email;
+      result[index].tutorPhone = tutor.phone;
+      result[index].isVerified = tutor.isVerified;
+    });
+    return result;
   }
 
   async editTutorInfo(userId: string, data: UpdateTutorDTO): Promise<Tutor> {

@@ -20,12 +20,4 @@ export class StudentListViewDTO extends OmitUpdateType(Student, [
 
   @ApiProperty()
   studentEmail: string;
-
-  constructor(student: Student) {
-    super();
-    this.studentName = student.name;
-    this.studentId = student.userId;
-    this.studentCode = student.studentCode;
-    this.studentEmail = student.email;
-  }
 }

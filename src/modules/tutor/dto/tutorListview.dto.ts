@@ -28,14 +28,4 @@ export class TutorListViewDTO extends OmitUpdateType(Tutor, [
 
   @ApiProperty()
   isVerified: boolean;
-
-  constructor(tutor: Tutor) {
-    super();
-    this.tutorName = tutor.name;
-    this.tutorId = tutor.userId;
-    this.tutorCode = tutor.tutorCode;
-    this.tutorEmail = tutor.email;
-    this.tutorPhone = tutor.phone;
-    this.isVerified = tutor.isVerified;
-  }
 }

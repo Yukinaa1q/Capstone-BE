@@ -59,7 +59,15 @@ export class StudentService {
 
   async getAllStudentForTable(): Promise<StudentListViewDTO[]> {
     const students = await this.studentRepository.find();
-    return students.map((student) => new StudentListViewDTO(student));
+    const result = [];
+    students.forEach((student, index) => {
+      result[index] = {} as StudentListViewDTO;
+      result[index].studentName = student.name;
+      result[index].studentId = student.userId;
+      result[index].studentCode = student.studentCode;
+      result[index].studentEmail = student.email;
+    });
+    return result;
   }
 
   async findOneStudent(data: string): Promise<Student> {
