@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from '@common/entity';
-import { IsEnum, IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export type Role =
   | 'admin'
@@ -34,6 +34,7 @@ export class Staff extends User {
   @Column({ nullable: true })
   @ApiPropertyOptional()
   @IsString()
+  @IsOptional()
   staffCode?: string;
 
   constructor(partial: Partial<User>) {

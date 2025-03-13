@@ -40,4 +40,11 @@ export class AuthenticationController {
     const signup = await this.authenticationService.registerNativeTutor(data);
     return signup;
   }
+
+  @Post('login/staff')
+  @ApiResponseString()
+  async logInStaff(@Body() data: LogInWithPasswordDTO) {
+    const token = await this.authenticationService.logInWithPasswordTutor(data);
+    return { token: token };
+  }
 }

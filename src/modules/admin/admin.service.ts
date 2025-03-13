@@ -5,12 +5,17 @@ import { Repository } from 'typeorm';
 import { generateCustomID, hashPassword } from '@utils';
 import { CreateAdminDTO } from './dto';
 import { UpdateAdminDTO } from './dto/updateAdmin.dto';
+import { CreateStaffDTO } from '@modules/staff/dto';
+import { Staff } from '@modules/staff/entity/staff.entity';
+import { ResponseCode, ServiceException } from '@common/error';
+import { StaffService } from '@modules/staff';
 
 @Injectable()
 export class AdminService {
   constructor(
     @InjectRepository(Admin)
     private readonly adminRepository: Repository<Admin>,
+    private readonly staffService: StaffService,
   ) {}
   async getNextAdminID(): Promise<string> {
     const lastAdmin = await this.adminRepository
@@ -45,5 +50,13 @@ export class AdminService {
   async getAllAdmin(): Promise<Admin[]> {
     const listAdmin = await this.adminRepository.find();
     return listAdmin;
+  }
+
+  async createStaffAccount(data: CreateStaffDTO, role: string): Promise<Staff> {
+    if (role != 'admin')
+      throw new ServiceException(ResponseCode.UNAUTHORIZED, 'Unauthorized');
+
+    const staff = await this.staffService.createStaff(data);
+    return staff;
   }
 }

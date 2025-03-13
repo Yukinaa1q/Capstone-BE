@@ -9,6 +9,8 @@ import { Admin } from './entity';
 import { CreateAdminDTO } from './dto';
 import { CurrentUser } from '@common/decorator';
 import { UpdateAdminDTO } from './dto/updateAdmin.dto';
+import { Staff } from '@modules/staff/entity/staff.entity';
+import { CreateStaffDTO } from '@modules/staff/dto';
 
 @ApiAuthController('admin')
 export class AdminController {
@@ -31,5 +33,14 @@ export class AdminController {
   @ApiResponseArray(Admin)
   async getAllAdmin(): Promise<Admin[]> {
     return this.adminService.getAllAdmin();
+  }
+
+  @Post('create-staff')
+  @ApiResponseObject(Staff)
+  async createStaff(
+    @Body() data: CreateStaffDTO,
+    @CurrentUser() admin: any,
+  ): Promise<Staff> {
+    return this.adminService.createStaffAccount(data, admin.role);
   }
 }

@@ -5,12 +5,15 @@ import { Repository } from 'typeorm';
 import { generateCustomID, hashPassword } from '@utils';
 import { CreateStaffDTO } from './dto';
 import { UpdateStaffDTO } from './dto/updateStaff.dto';
+import { QualifiedSubject, Tutor } from '@modules/tutor/entity/tutor.entity';
 
 @Injectable()
 export class StaffService {
   constructor(
     @InjectRepository(Staff)
     private readonly staffRepository: Repository<Staff>,
+    @InjectRepository(Tutor)
+    private readonly tutorRepository: Repository<Tutor>,
   ) {}
 
   async getNextStaffID(): Promise<string> {
@@ -71,5 +74,33 @@ export class StaffService {
       where: { email: data },
     });
     return findStaff;
+  }
+
+  async addQualification(
+    data: QualifiedSubject[],
+    tutorId: string,
+  ): Promise<Tutor> {
+    const tutor = await this.tutorRepository.findOne({
+      where: { userId: tutorId },
+    });
+    data.map((item) => {
+      tutor.qualifiedSubject.push(item);
+    });
+    await this.tutorRepository.save(tutor);
+    return tutor;
+  }
+
+  async verifyTutor(
+    tutorId: string,
+  ): Promise<{ message: string; success: boolean }> {
+    const tutor = await this.tutorRepository.findOne({
+      where: { userId: tutorId },
+    });
+    if (tutor.isVerified) {
+      return { message: 'This tutor has been verified', success: false };
+    }
+    tutor.isVerified = true;
+    await this.tutorRepository.save(tutor);
+    return { message: 'You successfully verified this tutor', success: true };
   }
 }

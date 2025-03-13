@@ -4,11 +4,12 @@ import {
   ApiResponseObject,
 } from '@services/openApi';
 import { StaffService } from './staff.service';
-import { Body, Get, Post } from '@nestjs/common';
+import { Body, Get, Param, Post } from '@nestjs/common';
 import { Staff } from './entity';
 import { CreateStaffDTO } from './dto';
 import { CurrentUser } from '@common/decorator';
 import { UpdateStaffDTO } from './dto/updateStaff.dto';
+import { QualifiedSubject, Tutor } from '@modules/tutor/entity/tutor.entity';
 
 @ApiAuthController('staff')
 export class StaffController {
@@ -33,5 +34,21 @@ export class StaffController {
     @Body() data: UpdateStaffDTO,
   ): Promise<Staff> {
     return this.staffService.editStaffInfo(staff.userId, data);
+  }
+
+  @Post('/add-qualification/:tutorId')
+  @ApiResponseObject(Tutor)
+  async addQualification(
+    @Body() data: QualifiedSubject[],
+    @Param('tutorId') tutorId: string,
+  ): Promise<Tutor> {
+    return this.staffService.addQualification(data, tutorId);
+  }
+
+  @Get('verify-tutor/:tutorId')
+  async verifyTutor(
+    @Param('tutorId') tutorId: string,
+  ): Promise<{ message: string; success: boolean }> {
+    return this.staffService.verifyTutor(tutorId);
   }
 }

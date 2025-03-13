@@ -4,12 +4,20 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsBoolean, IsString } from 'class-validator';
 import { Column, Entity, OneToMany } from 'typeorm';
 
+export class QualifiedSubject {
+  @IsString()
+  subject: string;
+
+  @IsString()
+  level: string;
+}
+
 @Entity({ name: 'tutor' })
 export class Tutor extends User {
-  @Column({ nullable: true, type: 'text', array: true })
+  @Column({ default: [], type: 'jsonb', array: true })
   @ApiPropertyOptional()
   @IsArray()
-  qualifiedSubject?: string[];
+  qualifiedSubject?: QualifiedSubject[];
 
   @Column({ nullable: true })
   @ApiPropertyOptional()
