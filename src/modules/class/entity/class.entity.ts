@@ -1,6 +1,7 @@
 import { Course } from '@modules/course/entity/course.entity';
 import { Student } from '@modules/student/entity/student.entity';
 import { Tutor } from '@modules/tutor/entity/tutor.entity';
+import { Room } from '@modules/courseRegistration/entity/room.entity';
 import {
   ApiHideProperty,
   ApiProperty,
@@ -110,4 +111,12 @@ export class Classroom {
     inverseJoinColumn: { name: 'studentId', referencedColumnName: 'userId' }, // Column for Student
   })
   students: Student[]; // Array of students in the classroom
+
+  @ApiHideProperty()
+  @ManyToOne(() => Room, (room) => room.classes, { eager: true })
+  @JoinColumn({ name: 'roomId' })
+  room: Room;
+
+  @Column({ nullable: true })
+  roomId: string;
 }

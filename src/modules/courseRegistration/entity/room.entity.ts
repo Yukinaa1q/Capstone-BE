@@ -1,7 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsNotEmpty, IsString, IsUUID } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  IsArray,
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Classroom } from '@modules/class/entity/class.entity';
 
 @Entity({ name: 'room' })
 export class Room {
@@ -11,15 +19,39 @@ export class Room {
   @IsUUID()
   roomId: string;
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
-  roomCode: string;
+  roomCode?: string;
 
   @Column()
   @ApiProperty()
   @IsBoolean()
   @IsNotEmpty()
   occupied: boolean;
+
+  @Column({ nullable: true })
+  @ApiProperty()
+  @IsString()
+  roomAdress?: string;
+
+  @Column()
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  maxClasses: number;
+
+  @Column({ nullable: true })
+  @ApiProperty()
+  @IsString()
+  onlineRoom?: string;
+
+  @OneToMany(() => Classroom, (classroom) => classroom.room)
+  classes: Classroom[];
+
+  @Column('simple-array', { nullable: true })
+  @ApiProperty()
+  @IsArray()
+  @IsString({ each: true })
+  classesIdList: string[];
 }
