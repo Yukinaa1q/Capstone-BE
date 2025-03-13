@@ -9,6 +9,7 @@ import { CreateStudentDTO } from './dto';
 import { CurrentUser } from '@common/decorator';
 import { UpdateStudentDTO } from './dto/updateStudent.dto';
 import { Student } from './entity/student.entity';
+import { StudentListViewDTO } from './dto/studentListView.dto';
 
 @ApiAuthController('student')
 export class StudentController {
@@ -24,6 +25,12 @@ export class StudentController {
   @ApiResponseArray(Student)
   async getAllStudent(): Promise<Student[]> {
     return this.studentService.getAllStudent();
+  }
+
+  @Get('all-student-table')
+  @ApiResponseArray(StudentListViewDTO)
+  async getAllStudentForTable(): Promise<StudentListViewDTO[]> {
+    return this.studentService.getAllStudentForTable();
   }
 
   @Post('/update')

@@ -1,7 +1,7 @@
 import { User } from '@common/entity';
 import { Classroom } from '@modules/class/entity/class.entity';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsString } from 'class-validator';
 import { Column, Entity, OneToMany } from 'typeorm';
 
 @Entity({ name: 'tutor' })
@@ -25,6 +25,11 @@ export class Tutor extends User {
   @ApiPropertyOptional()
   @IsString()
   information?: string;
+
+  @Column({ default: false })
+  @ApiPropertyOptional()
+  @IsBoolean()
+  isVerified: boolean;
 
   @ApiPropertyOptional()
   @OneToMany(() => Classroom, (classroom) => classroom.tutor)

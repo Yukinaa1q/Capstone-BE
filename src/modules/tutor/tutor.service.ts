@@ -5,6 +5,7 @@ import { generateCustomID, hashPassword } from '@utils';
 import { Tutor } from './entity/tutor.entity';
 import { CreateTutorDTO } from './dto/createTutor.dto';
 import { UpdateTutorDTO } from './dto/updateTutor.dto';
+import { TutorListViewDTO } from './dto/tutorListView.dto';
 
 @Injectable()
 export class TutorService {
@@ -39,6 +40,21 @@ export class TutorService {
   async getAllTutor(): Promise<Tutor[]> {
     const allTutor = await this.tutorRepository.find();
     return allTutor;
+  }
+
+  async getAllTutorForTable(): Promise<TutorListViewDTO[]> {
+    const tutors = await this.tutorRepository.find();
+    const result = [];
+    tutors.forEach((tutor, index) => {
+      result[index] = {} as TutorListViewDTO;
+      result[index].tutorName = tutor.name;
+      result[index].tutorId = tutor.userId;
+      result[index].tutorCode = tutor.tutorCode;
+      result[index].tutorEmail = tutor.email;
+      result[index].tutorPhone = tutor.phone;
+      result[index].isVerified = tutor.isVerified;
+    });
+    return result;
   }
 
   async editTutorInfo(userId: string, data: UpdateTutorDTO): Promise<Tutor> {
