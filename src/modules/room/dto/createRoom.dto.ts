@@ -12,5 +12,5 @@ export class CreateRoomDTO extends OmitUpdateType(Room, ['roomId']) {
 
   @IsString()
   @IsOptional()
-  roomAdress?: string;
+  roomAddress?: string;
 }

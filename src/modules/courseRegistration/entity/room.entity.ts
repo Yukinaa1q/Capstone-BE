@@ -33,7 +33,7 @@ export class Room {
   @Column({ nullable: true })
   @ApiProperty()
   @IsString()
-  roomAdress?: string;
+  roomAddress?: string;
 
   @Column()
   @ApiProperty()
