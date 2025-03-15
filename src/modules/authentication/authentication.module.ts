@@ -7,7 +7,6 @@ import { StudentModule } from '@modules/student';
 import { TutorModule } from '@modules/tutor/tutor.module';
 import { StaffModule } from '@modules/staff';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Admin } from '@modules/admin';
 
 @Module({
   imports: [
@@ -19,7 +18,6 @@ import { Admin } from '@modules/admin';
     StudentModule,
     TutorModule,
     StaffModule,
-    TypeOrmModule.forFeature([Admin]),
   ],
   controllers: [AuthenticationController],
   providers: [AuthenticationService],

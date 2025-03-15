@@ -11,7 +11,6 @@ import { TutorService } from '@modules/tutor/tutor.service';
 import { CreateTutorDTO } from '@modules/tutor/dto/createTutor.dto';
 import { UserPayload } from './dto';
 import { StaffService } from '@modules/staff';
-import { Admin, AdminService } from '@modules/admin';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 @Injectable()
@@ -20,8 +19,6 @@ export class AuthenticationService {
     private readonly studentService: StudentService,
     private readonly tutorService: TutorService,
     private readonly staffService: StaffService,
-    @InjectRepository(Admin)
-    private readonly adminRepository: Repository<Admin>,
     private jwtService: JwtService,
   ) {}
 
@@ -138,35 +135,35 @@ export class AuthenticationService {
     return accessToken;
   }
 
-  async logInWithPasswordAdmin(data: LogInWithPasswordDTO): Promise<String> {
-    const user = await this.adminRepository.findOne({
-      where: { email: data.email },
-    });
-    if (!user) {
-      throw new ServiceException(
-        ResponseCode.USER_NOT_FOUND,
-        'Not found user in db',
-      );
-    }
-    const checkPass = await checkPassword(data.password, user.password);
-    if (!checkPass) {
-      throw new ServiceException(
-        ResponseCode.WRONG_PASSWORD,
-        'Wrong credentials',
-      );
-    }
+  // async logInWithPasswordAdmin(data: LogInWithPasswordDTO): Promise<String> {
+  //   const user = await this.adminRepository.findOne({
+  //     where: { email: data.email },
+  //   });
+  //   if (!user) {
+  //     throw new ServiceException(
+  //       ResponseCode.USER_NOT_FOUND,
+  //       'Not found user in db',
+  //     );
+  //   }
+  //   const checkPass = await checkPassword(data.password, user.password);
+  //   if (!checkPass) {
+  //     throw new ServiceException(
+  //       ResponseCode.WRONG_PASSWORD,
+  //       'Wrong credentials',
+  //     );
+  //   }
 
-    const payload = {
-      role: 'admin',
-      userId: user.userId,
-      userCode: user.adminCode,
-      name: user.name,
-    } as UserPayload;
+  //   const payload = {
+  //     role: 'admin',
+  //     userId: user.userId,
+  //     userCode: user.adminCode,
+  //     name: user.name,
+  //   } as UserPayload;
 
-    const accessToken = await this.jwtService.signAsync(
-      { payload },
-      { secret: JWT_SECRET },
-    );
-    return accessToken;
-  }
+  //   const accessToken = await this.jwtService.signAsync(
+  //     { payload },
+  //     { secret: JWT_SECRET },
+  //   );
+  //   return accessToken;
+  // }
 }

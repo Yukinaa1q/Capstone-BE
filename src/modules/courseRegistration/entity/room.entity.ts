@@ -5,6 +5,7 @@ import {
   IsBoolean,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   IsUUID,
 } from 'class-validator';
@@ -35,11 +36,11 @@ export class Room {
   @IsString()
   roomAddress?: string;
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty()
   @IsNumber()
-  @IsNotEmpty()
-  maxClasses: number;
+  @IsOptional()
+  maxClasses?: number;
 
   @Column({ nullable: true })
   @ApiProperty()
@@ -49,7 +50,7 @@ export class Room {
   @OneToMany(() => Classroom, (classroom) => classroom.room)
   classes: Classroom[];
 
-  @Column('simple-array', { nullable: true })
+  @Column({ nullable: true, type: 'text', array: true })
   @ApiProperty()
   @IsArray()
   @IsString({ each: true })

@@ -1,9 +1,9 @@
 import { OmitUpdateType } from '@services/openApi';
-import { Admin } from '../entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { Staff } from '@modules/staff';
 
-export class CreateAdminDTO extends OmitUpdateType(Admin, [
+export class CreateAdminDTO extends OmitUpdateType(Staff, [
   'userId',
   'adminCode',
 ]) {
