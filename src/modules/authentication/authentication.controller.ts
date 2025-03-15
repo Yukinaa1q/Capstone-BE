@@ -44,7 +44,7 @@ export class AuthenticationController {
   @Post('login/staff')
   @ApiResponseString()
   async logInStaff(@Body() data: LogInWithPasswordDTO) {
-    const token = await this.authenticationService.logInWithPasswordTutor(data);
+    const token = await this.authenticationService.logInWithPasswordStaff(data);
     return { token: token };
   }
 }

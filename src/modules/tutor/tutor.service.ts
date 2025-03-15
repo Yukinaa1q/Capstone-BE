@@ -5,7 +5,7 @@ import { generateCustomID, hashPassword } from '@utils';
 import { Tutor } from './entity/tutor.entity';
 import { CreateTutorDTO } from './dto/createTutor.dto';
 import { UpdateTutorDTO } from './dto/updateTutor.dto';
-import { TutorListViewDTO } from './dto/tutorListView.dto';
+import { TutorListViewDTO } from './dto/tutorListview.dto';
 
 @Injectable()
 export class TutorService {

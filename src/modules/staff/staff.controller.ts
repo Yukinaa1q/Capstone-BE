@@ -4,7 +4,7 @@ import {
   ApiResponseObject,
 } from '@services/openApi';
 import { StaffService } from './staff.service';
-import { Body, Get, Param, Post } from '@nestjs/common';
+import { Body, Delete, Get, Param, Post } from '@nestjs/common';
 import { Staff } from './entity';
 import { CreateStaffDTO } from './dto';
 import { CurrentUser } from '@common/decorator';
@@ -37,12 +37,20 @@ export class StaffController {
   }
 
   @Post('/add-qualification/:tutorId')
-  @ApiResponseObject(Tutor)
+  @ApiResponseObject(QualifiedSubject)
   async addQualification(
     @Body() data: QualifiedSubject[],
     @Param('tutorId') tutorId: string,
-  ): Promise<Tutor> {
+  ): Promise<QualifiedSubject[]> {
     return this.staffService.addQualification(data, tutorId);
+  }
+
+  @Get('get-qualification/:tutorId')
+  @ApiResponseArray(QualifiedSubject)
+  async getQualification(
+    @Param('tutorId') tutorId: string,
+  ): Promise<QualifiedSubject[]> {
+    return this.staffService.getQualification(tutorId);
   }
 
   @Get('verify-tutor/:tutorId')
@@ -50,5 +58,14 @@ export class StaffController {
     @Param('tutorId') tutorId: string,
   ): Promise<{ message: string; success: boolean }> {
     return this.staffService.verifyTutor(tutorId);
+  }
+
+  @Delete('delete-qualification/:tutorId')
+  @ApiResponseArray(QualifiedSubject)
+  async deleteQualification(
+    @Body() data: QualifiedSubject[],
+    @Param('tutorId') tutorId: string,
+  ): Promise<QualifiedSubject[]> {
+    return this.staffService.deleteQualification(data, tutorId);
   }
 }

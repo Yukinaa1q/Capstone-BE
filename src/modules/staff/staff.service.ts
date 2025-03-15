@@ -6,6 +6,7 @@ import { generateCustomID, hashPassword } from '@utils';
 import { CreateStaffDTO } from './dto';
 import { UpdateStaffDTO } from './dto/updateStaff.dto';
 import { QualifiedSubject, Tutor } from '@modules/tutor/entity/tutor.entity';
+import { ResponseCode, ServiceException } from '@common/error';
 
 @Injectable()
 export class StaffService {
@@ -29,6 +30,16 @@ export class StaffService {
   async createStaff(data: CreateStaffDTO): Promise<Staff> {
     if (!Object.values(staffRole).includes(data.role as staffRole)) {
       throw new BadRequestException('Invalid staff role');
+    }
+
+    const staff = await this.staffRepository.findOne({
+      where: { email: data.email },
+    });
+    if (staff) {
+      throw new ServiceException(
+        ResponseCode.SAME_EMAIL_ERROR,
+        'This email has been registered',
+      );
     }
 
     const hashPass = await hashPassword(data.password);
@@ -79,15 +90,17 @@ export class StaffService {
   async addQualification(
     data: QualifiedSubject[],
     tutorId: string,
-  ): Promise<Tutor> {
+  ): Promise<QualifiedSubject[]> {
     const tutor = await this.tutorRepository.findOne({
       where: { userId: tutorId },
     });
-    data.map((item) => {
-      tutor.qualifiedSubject.push(item);
+    data.map(async (item) => {
+      if (!tutor.qualifiedSubject.includes(item)) {
+        tutor.qualifiedSubject.push(item);
+        await this.tutorRepository.save(tutor);
+      }
     });
-    await this.tutorRepository.save(tutor);
-    return tutor;
+    return tutor.qualifiedSubject;
   }
 
   async verifyTutor(
@@ -102,5 +115,26 @@ export class StaffService {
     tutor.isVerified = true;
     await this.tutorRepository.save(tutor);
     return { message: 'You successfully verified this tutor', success: true };
+  }
+
+  async getQualification(tutorId: string): Promise<QualifiedSubject[]> {
+    const tutor = await this.tutorRepository.findOne({
+      where: { userId: tutorId },
+    });
+    return tutor.qualifiedSubject;
+  }
+
+  async deleteQualification(
+    data: QualifiedSubject[],
+    tutorId: string,
+  ): Promise<QualifiedSubject[]> {
+    const tutor = await this.tutorRepository.findOne({
+      where: { userId: tutorId },
+    });
+    tutor.qualifiedSubject = tutor.qualifiedSubject.filter(
+      (item) => !data.includes(item),
+    );
+    await this.tutorRepository.save(tutor);
+    return tutor.qualifiedSubject;
   }
 }
