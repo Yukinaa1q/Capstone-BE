@@ -94,12 +94,18 @@ export class StaffService {
     const tutor = await this.tutorRepository.findOne({
       where: { userId: tutorId },
     });
-    data.map(async (item) => {
-      if (!tutor.qualifiedSubject.includes(item)) {
+    for (const item of data) {
+      const exists = tutor.qualifiedSubject.find(
+        (subject) => subject.subject === item.subject,
+      );
+
+      if (!exists) {
         tutor.qualifiedSubject.push(item);
-        await this.tutorRepository.save(tutor);
+      } else {
+        exists.level = item.level;
       }
-    });
+    }
+    await this.tutorRepository.save(tutor);
     return tutor.qualifiedSubject;
   }
 
@@ -132,7 +138,7 @@ export class StaffService {
       where: { userId: tutorId },
     });
     tutor.qualifiedSubject = tutor.qualifiedSubject.filter(
-      (item) => !data.includes(item),
+      (subject) => !data.some((item) => item.subject === subject.subject),
     );
     await this.tutorRepository.save(tutor);
     return tutor.qualifiedSubject;

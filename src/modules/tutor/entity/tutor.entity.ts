@@ -14,7 +14,7 @@ export class QualifiedSubject {
 
 @Entity({ name: 'tutor' })
 export class Tutor extends User {
-  @Column({ default: [], type: 'jsonb', array: true })
+  @Column({ default: [], type: 'jsonb', array: false })
   @ApiPropertyOptional()
   @IsArray()
   qualifiedSubject?: QualifiedSubject[];

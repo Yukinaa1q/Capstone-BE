@@ -59,7 +59,6 @@ export class CourseController {
     courseImage: Express.Multer.File,
     @Body() data: CreateCourseDTO,
   ) {
-    console.log('data');
     return this.courseService.createCourse(courseImage, data);
   }
 
