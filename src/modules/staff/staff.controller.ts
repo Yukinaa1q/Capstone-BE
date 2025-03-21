@@ -5,7 +5,7 @@ import {
   ApiResponseString,
 } from '@services/openApi';
 import { StaffService } from './staff.service';
-import { Body, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { Staff } from './entity';
 import { CreateStaffDTO } from './dto';
 import { CurrentUser } from '@common/decorator';
@@ -35,9 +35,18 @@ export class StaffController {
     return this.staffService.getAllStaffForTable();
   }
 
-  @Post('/update')
+  @Put('/update/:staffId')
   @ApiResponseObject(Staff)
   async updateStaffInfo(
+    @Param('staffId') staffId: string,
+    @Body() data: UpdateStaffDTO,
+  ): Promise<Staff> {
+    return this.staffService.editStaffInfo(staffId, data);
+  }
+
+  @Post('/update')
+  @ApiResponseObject(Staff)
+  async updateCurrentStaffInfo(
     @CurrentUser() staff: any,
     @Body() data: UpdateStaffDTO,
   ): Promise<Staff> {

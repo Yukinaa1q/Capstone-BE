@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Staff, staffRole } from './entity';
 import { Repository } from 'typeorm';
@@ -60,19 +64,48 @@ export class StaffService {
   }
 
   async editStaffInfo(userId: string, data: UpdateStaffDTO): Promise<Staff> {
-    if (
-      data.role &&
-      !Object.values(staffRole).includes(data.role as staffRole)
-    ) {
-      throw new BadRequestException('Invalid staff role');
+    const staff = await this.staffRepository.findOne({
+      where: { userId: userId },
+    });
+
+    if (!staff) {
+      throw new NotFoundException('Staff not found');
+    }
+    const updateData: Partial<Staff> = {};
+
+    if (data.staffName) {
+      updateData.name = data.staffName;
     }
 
-    if (data.password) {
-      data.password = await hashPassword(data.password);
+    if (data.staffEmail) {
+      const existingStaff = await this.staffRepository.findOne({
+        where: { email: data.staffEmail },
+      });
+      if (existingStaff && existingStaff.userId !== userId) {
+        throw new ServiceException(
+          ResponseCode.SAME_EMAIL_ERROR,
+          'This email has been registered',
+        );
+      }
+      updateData.email = data.staffEmail;
     }
 
-    await this.staffRepository.update(userId, data);
+    if (data.staffPhone) {
+      updateData.phone = data.staffPhone;
+    }
 
+    if (data.staffPassword) {
+      updateData.password = await hashPassword(data.staffPassword);
+    }
+
+    if (data.staffRole) {
+      if (!Object.values(staffRole).includes(data.staffRole as staffRole)) {
+        throw new BadRequestException('Invalid staff role');
+      }
+      updateData.role = data.staffRole;
+    }
+
+    await this.staffRepository.update(userId, updateData);
     return this.staffRepository.findOne({ where: { userId: userId } });
   }
 
