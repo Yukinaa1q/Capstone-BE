@@ -6,6 +6,7 @@ import { Tutor } from './entity/tutor.entity';
 import { CreateTutorDTO } from './dto/createTutor.dto';
 import { UpdateTutorDTO } from './dto/updateTutor.dto';
 import { TutorListViewDTO } from './dto/tutorListview.dto';
+import { TutorDetailDTO } from './dto/tutorDetails.dto';
 
 @Injectable()
 export class TutorService {
@@ -72,5 +73,22 @@ export class TutorService {
       where: { email: data },
     });
     return findTutor;
+  }
+
+  async getTutorDetail(userId: string): Promise<TutorDetailDTO> {
+    const tutor = await this.tutorRepository.findOne({
+      where: { userId: userId },
+    });
+    const tutorDetail = new TutorDetailDTO();
+    tutorDetail.userId = tutor.userId;
+    tutorDetail.userCode = tutor.tutorCode;
+    tutorDetail.avatarUrl = tutor.avatarUrl;
+    tutorDetail.fullName = tutor.name;
+    tutorDetail.email = tutor.email;
+    tutorDetail.dob = tutor.DOB;
+    tutorDetail.phoneNumber = tutor.phone;
+    tutorDetail.isVerified = tutor.isVerified;
+    tutorDetail.ssid = tutor.tutorSSN;
+    return tutorDetail;
   }
 }

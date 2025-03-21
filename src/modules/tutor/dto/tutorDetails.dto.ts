@@ -1,6 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, IsDate, IsOptional } from 'class-validator';
-export class StudentDetailDTO {
+import {
+  IsEmail,
+  IsString,
+  IsBoolean,
+  IsDate,
+  IsOptional,
+} from 'class-validator';
+export class TutorDetailDTO {
   @ApiProperty()
   @IsString()
   userCode: string;
@@ -20,6 +26,11 @@ export class StudentDetailDTO {
   @ApiProperty()
   @IsEmail()
   email: string;
+
+  @ApiProperty()
+  @IsBoolean()
+  @IsOptional()
+  isVerified: boolean;
 
   @ApiProperty()
   @IsDate()
