@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { generateCustomID, hashPassword } from '@utils';
 import { CreateStaffDTO } from './dto';
 import { UpdateStaffDTO } from './dto/updateStaff.dto';
+import { StaffListViewDTO } from './dto/staffListView.dto';
 import { QualifiedSubject, Tutor } from '@modules/tutor/entity/tutor.entity';
 import { ResponseCode, ServiceException } from '@common/error';
 
@@ -78,6 +79,21 @@ export class StaffService {
   async getAllStaff(): Promise<Staff[]> {
     const listStaff = await this.staffRepository.find();
     return listStaff;
+  }
+
+  async getAllStaffForTable(): Promise<StaffListViewDTO[]> {
+    const staffs = await this.staffRepository.find();
+    const result = [];
+    staffs.forEach((staff, index) => {
+      result[index] = {} as StaffListViewDTO;
+      result[index].staffName = staff.name;
+      result[index].staffId = staff.userId;
+      result[index].staffCode = staff.staffCode;
+      result[index].staffEmail = staff.email;
+      result[index].staffPhone = staff.phone;
+      result[index].staffRole = staff.role;
+    });
+    return result;
   }
 
   async findOneStaff(data: string): Promise<Staff> {

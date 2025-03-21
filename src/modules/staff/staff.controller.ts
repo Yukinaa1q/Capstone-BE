@@ -10,6 +10,7 @@ import { CreateStaffDTO } from './dto';
 import { CurrentUser } from '@common/decorator';
 import { UpdateStaffDTO } from './dto/updateStaff.dto';
 import { QualifiedSubject, Tutor } from '@modules/tutor/entity/tutor.entity';
+import { StaffListViewDTO } from './dto/staffListView.dto';
 
 @ApiAuthController('staff')
 export class StaffController {
@@ -25,6 +26,12 @@ export class StaffController {
   @ApiResponseArray(Staff)
   async getAllStaff(): Promise<Staff[]> {
     return this.staffService.getAllStaff();
+  }
+
+  @Get('all-staff-table')
+  @ApiResponseArray(StaffListViewDTO)
+  async getAllStaffForTable(): Promise<StaffListViewDTO[]> {
+    return this.staffService.getAllStaffForTable();
   }
 
   @Post('/update')
