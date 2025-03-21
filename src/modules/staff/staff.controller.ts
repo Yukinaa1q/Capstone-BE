@@ -2,6 +2,7 @@ import {
   ApiAuthController,
   ApiResponseArray,
   ApiResponseObject,
+  ApiResponseString,
 } from '@services/openApi';
 import { StaffService } from './staff.service';
 import { Body, Delete, Get, Param, Post } from '@nestjs/common';
@@ -41,6 +42,12 @@ export class StaffController {
     @Body() data: UpdateStaffDTO,
   ): Promise<Staff> {
     return this.staffService.editStaffInfo(staff.userId, data);
+  }
+
+  @Delete('delete-staff/:id')
+  @ApiResponseString()
+  async deleteStaff(@Param('id') id: string): Promise<string> {
+    return this.staffService.deleteStaff(id);
   }
 
   @Post('/add-qualification/:tutorId')

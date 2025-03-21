@@ -103,6 +103,11 @@ export class StaffService {
     return findStaff;
   }
 
+  async deleteStaff(userId: string): Promise<string> {
+    await this.staffRepository.delete({ userId });
+    return 'Staff deleted successfully';
+  }
+
   async addQualification(
     data: QualifiedSubject[],
     tutorId: string,
