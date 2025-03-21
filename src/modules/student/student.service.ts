@@ -6,6 +6,7 @@ import { generateCustomID, hashPassword } from '@utils';
 import { UpdateStudentDTO } from './dto/updateStudent.dto';
 import { Student } from './entity/student.entity';
 import { StudentListViewDTO } from './dto/studentListView.dto';
+import { StudentDetailDTO } from './dto/studentDetails.dto';
 
 @Injectable()
 export class StudentService {
@@ -75,5 +76,22 @@ export class StudentService {
       where: { email: data },
     });
     return findStudent;
+  }
+
+  async getStudentDetail(userId: string): Promise<StudentDetailDTO> {
+    const student = await this.studentRepository.findOne({
+      where: { userId },
+    });
+
+    const studentDetail = new StudentDetailDTO();
+    studentDetail.userId = student.userId;
+    studentDetail.userCode = student.studentCode;
+    studentDetail.avatarUrl = student.avatarUrl;
+    studentDetail.fullName = student.name;
+    studentDetail.email = student.email;
+    studentDetail.dob = student.DOB;
+    studentDetail.phoneNumber = student.phone;
+
+    return studentDetail;
   }
 }
