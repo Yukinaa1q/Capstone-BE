@@ -7,6 +7,7 @@ import {
   IsString,
 } from 'class-validator';
 import { PaginationMeta } from '../courseRegistration.service';
+import { Classroom } from '@modules/class/entity/class.entity';
 
 export class CourseRegDTO {
   @IsString()
@@ -110,6 +111,14 @@ export class UnregisterTutorP1 {
 export class ResponseViewApi {
   @IsArray()
   data: CourseUnRegP1DTO[];
+
+  @IsObject()
+  meta: PaginationMeta;
+}
+
+export class ResponseViewApiP2 {
+  @IsArray()
+  data: Classroom[];
 
   @IsObject()
   meta: PaginationMeta;

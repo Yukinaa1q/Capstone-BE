@@ -11,6 +11,8 @@ import { Tutor } from '@modules/tutor/entity/tutor.entity';
 import { Classroom } from '@modules/class/entity/class.entity';
 import { Room } from './entity/room.entity';
 import { AllocateClassService } from './allocateClass.service';
+import { CourseRegistrationP2Service } from './courseRegistrationP2.service';
+import { Phase2RegisterController } from './courseRegistrationP2.controller';
 
 @Module({
   imports: [
@@ -25,8 +27,16 @@ import { AllocateClassService } from './allocateClass.service';
     ]),
     CourseModule,
   ],
-  controllers: [Phase1RegisterController],
-  providers: [CourseRegistrationService, AllocateClassService],
-  exports: [CourseRegistrationService, AllocateClassService],
+  controllers: [Phase1RegisterController, Phase2RegisterController],
+  providers: [
+    CourseRegistrationService,
+    AllocateClassService,
+    CourseRegistrationP2Service,
+  ],
+  exports: [
+    CourseRegistrationService,
+    AllocateClassService,
+    CourseRegistrationP2Service,
+  ],
 })
 export class CourseRegistrationModule {}

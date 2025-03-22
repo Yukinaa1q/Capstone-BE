@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Column, Entity, ManyToMany } from 'typeorm';
 import { User } from '@common/entity';
-import { IsBoolean, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsString } from 'class-validator';
 import { Classroom } from '@modules/class/entity/class.entity';
 
 @Entity({ name: 'student' })
@@ -18,6 +18,11 @@ export class Student extends User {
 
   @ManyToMany(() => Classroom, (classroom) => classroom.students)
   classrooms: Classroom[]; // Array of classrooms the student belongs to
+
+  @Column({ default: [], type: 'text', array: true })
+  @ApiProperty()
+  @IsArray()
+  classes: string[];
 
   constructor(partial: Partial<User>) {
     super();

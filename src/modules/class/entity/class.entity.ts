@@ -9,6 +9,7 @@ import {
 } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
   IsNotEmpty,
   IsNumber,
@@ -119,4 +120,9 @@ export class Classroom {
 
   @Column({ nullable: true })
   roomId: string;
+
+  @Column({ default: [], type: 'text', array: true })
+  @ApiProperty()
+  @IsArray()
+  studentList: string[];
 }

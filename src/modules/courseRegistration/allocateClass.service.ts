@@ -6,7 +6,7 @@ import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { generateCustomID, hasThreeMatchingAttributes } from '@utils';
-import { Repository } from 'typeorm';
+import { LessThan, MoreThan, Repository } from 'typeorm';
 import { Room } from './entity/room.entity';
 import { StudentPreReg } from './entity/studentPreReg.entity';
 import { TutorPreReg } from './entity/tutorPreReg.entity';
@@ -45,80 +45,6 @@ export class AllocateClassService {
     return generateCustomID('CL', lastNumber + 1);
   }
 
-  async allocateTutortoClass(): Promise<void> {
-    const getAllReg = await this.tutorPreRegRepository.find({
-      order: { createdTime: 'ASC' },
-    });
-    const distinctCourseIds = [
-      ...new Set(getAllReg.map((tutor) => tutor.courseId)),
-    ];
-    const timeStudyShift = [
-      { studyWeek: '2-4-6', studyShift: '17h45 - 19h15', isOnline: false },
-      { studyWeek: '2-4-6', studyShift: '19h30 - 21h00', isOnline: true },
-      { studyWeek: '3-5-7', studyShift: '17h45 - 19h15', isOnline: false },
-      { studyWeek: '3-5-7', studyShift: '19h30 - 21h00', isOnline: true },
-    ];
-    distinctCourseIds.forEach(async (course) => {
-      const getCourse = await this.courseRepository.findOne({
-        where: { courseId: course },
-      });
-      const getAllTutorReg = await this.tutorPreRegRepository.find({
-        where: { courseId: course },
-        order: { createdTime: 'ASC' },
-      });
-      timeStudyShift.forEach(async (option) => {
-        const classCode = await this.generateClassesCode();
-        const getRoom = await this.roomRepository.findOne({
-          where: { occupied: false },
-        });
-        if (!getRoom) {
-          option.isOnline = true;
-        }
-        let roomie = '';
-        option.isOnline ? (roomie = 'None') : (roomie = getRoom.roomCode);
-        const createClassroomDTO = {
-          courseTitle: getCourse.courseTitle,
-          courseCode: getCourse.courseCode,
-          maxStudents: 30,
-          classCode: classCode,
-          studyWeek: option.studyWeek,
-          studyShift: option.studyShift,
-          isOnline: option.isOnline,
-          courseId: getCourse.courseId,
-          classRoom: roomie,
-          currentStudents: 0,
-          tutorId: '',
-        };
-        for (let i = 0; i < getAllTutorReg.length; i++) {
-          const tutor = getAllTutorReg[i];
-          let check1 = '';
-          let check2 = [];
-          if (tutor.evenTimeShift) {
-            check1 = '2-4-6';
-            check2 = tutor.evenTimeShift;
-          } else {
-            check1 = '3-5-7';
-            check2 = tutor.oddTimeShift;
-          }
-          if (
-            check1 === option.studyWeek &&
-            check2.includes(option.studyShift) &&
-            tutor.courseId === getCourse.courseId
-          ) {
-            createClassroomDTO.tutorId = tutor.tutorId;
-            const newClassroom =
-              this.classroomRepository.create(createClassroomDTO);
-            await this.classroomRepository.save(newClassroom);
-            getCourse.classrooms.push(newClassroom);
-            await this.courseRepository.save(getCourse);
-            getAllTutorReg.splice(i, 1);
-            break;
-          }
-        }
-      });
-    });
-  }
-
   async createClass(): Promise<void> {
     const getAllReg = await this.tutorPreRegRepository.find({
       order: { createdTime: 'ASC' },
@@ -126,150 +52,293 @@ export class AllocateClassService {
 
     const checkSameTime = [];
     for (const registration of getAllReg) {
-      console.log(registration);
       const classCode = await this.generateClassesCode();
-      let sWeek = '';
-      let sShift = '';
+      const shiftAndWeek = [];
       if (registration.evenTimeShift.length != 0) {
-        sWeek = '2-4-6';
-        sShift = registration.evenTimeShift[0];
-        if (registration.evenTimeShift.length == 2) {
-          sShift = registration.evenTimeShift[0];
-          const checkMatchingClass = hasThreeMatchingAttributes(checkSameTime, {
-            courseId: registration.courseId,
-            sShift: sShift,
-            sWeek: sWeek,
-          });
-          if (checkMatchingClass) {
-            sShift = registration.evenTimeShift[1];
-          }
-        }
-      } else if (registration.oddTimeShift.length != 0) {
-        sWeek = '3-5-7';
-        sShift = registration.oddTimeShift[0];
-        if (registration.oddTimeShift.length == 2) {
-          sShift = registration.oddTimeShift[0];
-          const checkMatchingClass = hasThreeMatchingAttributes(checkSameTime, {
-            courseId: registration.courseId,
-            sShift: sShift,
-            sWeek: sWeek,
-          });
-          if (checkMatchingClass) {
-            sShift = registration.oddTimeShift[1];
-          }
-        }
-      }
-
-      let isOnl = true;
-      if (sWeek == '2-4-6') {
-        isOnl = true;
-      } else if (sWeek == '3-5-7') {
-        isOnl = false;
-      }
-
-      const checkMatchingShift = hasThreeMatchingAttributes(checkSameTime, {
-        tutorId: registration.tutorId,
-        sShift: sShift,
-        sWeek: sWeek,
-      });
-
-      const checkMatchingClass = hasThreeMatchingAttributes(checkSameTime, {
-        courseId: registration.courseId,
-        sShift: sShift,
-        sWeek: sWeek,
-      });
-
-      if (checkMatchingShift || checkMatchingClass) {
-        continue;
-      }
-
-      let roomie: Room = null;
-      if (!isOnl) {
-        const getRooms = await this.roomRepository.find({
-          where: { occupied: false },
+        registration.evenTimeShift.forEach((item) => {
+          shiftAndWeek.push({ sWeek: '2-4-6', sShift: item });
         });
-        roomie = getRooms.pop();
-        (roomie.occupied = true), await this.roomRepository.save(roomie);
+      }
+      if (registration.oddTimeShift.length != 0) {
+        registration.oddTimeShift.forEach((item) => {
+          shiftAndWeek.push({ sWeek: '3-5-7', sShift: item });
+        });
       }
 
-      if (!roomie) {
-        isOnl = true;
+      // if (registration.evenTimeShift.length != 0) {
+      //   sWeek = '2-4-6';
+      //   sShift = registration.evenTimeShift[0];
+      //   if (registration.evenTimeShift.length == 2) {
+      //     sShift = registration.evenTimeShift[0];
+      //     const checkMatchingClass = hasThreeMatchingAttributes(checkSameTime, {
+      //       courseId: registration.courseId,
+      //       sShift: sShift,
+      //       sWeek: sWeek,
+      //     });
+      //     if (checkMatchingClass) {
+      //       sShift = registration.evenTimeShift[1];
+      //     }
+      //   }
+      // } else if (registration.oddTimeShift.length != 0) {
+      //   sWeek = '3-5-7';
+      //   sShift = registration.oddTimeShift[0];
+      //   if (registration.oddTimeShift.length == 2) {
+      //     sShift = registration.oddTimeShift[0];
+      //     const checkMatchingClass = hasThreeMatchingAttributes(checkSameTime, {
+      //       courseId: registration.courseId,
+      //       sShift: sShift,
+      //       sWeek: sWeek,
+      //     });
+      //     if (checkMatchingClass) {
+      //       sShift = registration.oddTimeShift[1];
+      //     }
+      //   }
+      // }
+      for (const item of shiftAndWeek) {
+        let isOnl = true;
+        if (item.sWeek == '2-4-6') {
+          isOnl = true;
+        } else if (item.sWeek == '3-5-7') {
+          isOnl = false;
+        }
+
+        const checkMatchingShift = hasThreeMatchingAttributes(checkSameTime, {
+          tutorId: registration.tutorId,
+          sShift: item.sShift,
+          sWeek: item.sWeek,
+        });
+
+        const checkMatchingClass = hasThreeMatchingAttributes(checkSameTime, {
+          courseId: registration.courseId,
+          sShift: item.sShift,
+          sWeek: item.sWeek,
+        });
+
+        if (checkMatchingShift || checkMatchingClass) {
+          continue;
+        }
+
+        let roomie: Room = null;
+        if (!isOnl) {
+          roomie = await this.roomRepository.findOne({
+            where: { maxClasses: MoreThan(0) },
+          });
+        }
+
+        if (!roomie) {
+          isOnl = true;
+          roomie = await this.roomRepository.findOne({
+            where: { maxClasses: MoreThan(0) },
+          });
+          //roomie = this.roomRepository.create()//create Online classroom here, will be implemented in the future
+        }
+
+        checkSameTime.push({
+          tutorId: registration.tutorId,
+          courseId: registration.courseId,
+          sShift: item.sShift,
+          sWeek: item.sWeek,
+        });
+
+        const tutor = await this.tutorRepository.findOne({
+          where: { userId: registration.tutorId },
+        });
+        const course = await this.courseRepository.findOne({
+          where: { courseId: registration.courseId },
+        });
+        const createClassroomDTO = {
+          courseTitle: registration.course.courseTitle,
+          courseCode: registration.course.courseCode,
+          maxStudents: 30,
+          classCode: classCode, // chắc classCode cũng tự tạo luôn :>>
+          studyWeek: item.sWeek,
+          studyShift: item.sShift,
+          isOnline: isOnl,
+          courseId: registration.courseId,
+          classRoom: roomie?.roomCode ?? 'None',
+          currentStudents: 0,
+          tutorId: registration.tutorId,
+          roomId: roomie.roomId,
+        };
+        const newClassroom =
+          this.classroomRepository.create(createClassroomDTO);
+        await this.classroomRepository.save(newClassroom);
+        registration.course.classes.push(newClassroom.classId);
+        await this.courseRepository.save(registration.course);
+        roomie.classesIdList.push(newClassroom.classId);
+        roomie.maxClasses = roomie.maxClasses - 1;
+        await this.roomRepository.save(roomie);
+        tutor.classList.push(newClassroom.classId);
+        tutor.classrooms.push(newClassroom);
+        await this.tutorRepository.save(tutor);
+        course.classes.push(newClassroom.classId);
+        course.classrooms.push(newClassroom);
+        await this.courseRepository.save(course);
       }
-      checkSameTime.push({
-        tutorId: registration.tutorId,
-        courseId: registration.courseId,
-        sShift: sShift,
-        sWeek: sWeek,
-      });
-      const createClassroomDTO = {
-        courseTitle: registration.course.courseTitle,
-        courseCode: registration.course.courseCode,
-        maxStudents: 30,
-        classCode: classCode, // chắc classCode cũng tự tạo luôn :>>
-        studyWeek: sWeek,
-        studyShift: sShift,
-        isOnline: isOnl,
-        courseId: registration.courseId,
-        classRoom: roomie?.roomCode ?? 'None',
-        currentStudents: 0,
-        tutorId: registration.tutorId,
-      };
-      const newClassroom = this.classroomRepository.create(createClassroomDTO);
-      await this.classroomRepository.save(newClassroom);
-      // registration.course.classes.push(newClassroom.classId);
-      // await this.courseRepository.save(registration.course);
     }
   }
 
+  // async studentDividedToClass(): Promise<void> {
+  //   console.log('below func');
+  //   const getCourse = await this.studentPreRegRepository.find();
+  //   const distinctCourseIds = [
+  //     ...new Set(getCourse.map((course) => course.courseId)),
+  //   ];
+  //   distinctCourseIds.forEach(async (course) => {
+  //     const gettAllOnlineStudent = await this.studentPreRegRepository.find({
+  //       where: { isOnline: true, courseId: course },
+  //       order: { createdTime: 'ASC' },
+  //     });
+  //     const getAllOfflineStudent = await this.studentPreRegRepository.find({
+  //       where: { isOnline: false, courseId: course },
+  //       order: { createdTime: 'ASC' },
+  //     });
+
+  //     const getClassesInCourse = await this.classroomRepository.find({
+  //       where: { courseId: course },
+  //     });
+  //     getClassesInCourse.forEach(async (classes) => {
+  //       if (classes.isOnline) {
+  //         for (const student of gettAllOnlineStudent) {
+  //           if (classes.currentStudents > classes.maxStudents) {
+  //             break;
+  //           }
+  //           const getOneStudent = await this.studentRepository.findOne({
+  //             where: { userId: student.studentId },
+  //           });
+  //           classes.students.push(getOneStudent);
+  //           await this.classroomRepository.save(classes);
+  //           getOneStudent.classrooms.push(classes);
+  //           await this.studentRepository.save(getOneStudent);
+  //           gettAllOnlineStudent.pop();
+  //         }
+  //       } else {
+  //         for (const student of getAllOfflineStudent) {
+  //           if (classes.currentStudents > classes.maxStudents) {
+  //             break;
+  //           }
+  //           const getOneStudent = await this.studentRepository.findOne({
+  //             where: { userId: student.studentId },
+  //           });
+  //           classes.students.push(getOneStudent);
+  //           await this.classroomRepository.save(classes);
+  //           getOneStudent.classrooms.push(classes);
+  //           await this.studentRepository.save(getOneStudent);
+  //           gettAllOnlineStudent.pop();
+  //         }
+  //       }
+  //     });
+  //   });
+  // }
   async studentDividedToClass(): Promise<void> {
-    console.log('below func');
+    console.log('Starting student division into classes...');
+
+    // Fetch all student registrations
     const getCourse = await this.studentPreRegRepository.find();
     const distinctCourseIds = [
       ...new Set(getCourse.map((course) => course.courseId)),
     ];
-    distinctCourseIds.forEach(async (course) => {
+
+    // Process each course
+    for (const courseId of distinctCourseIds) {
+      console.log(`Processing course: ${courseId}`);
+
+      // Fetch all online and offline students for the course
       const gettAllOnlineStudent = await this.studentPreRegRepository.find({
-        where: { isOnline: true, courseId: course },
+        where: { isOnline: true, courseId },
         order: { createdTime: 'ASC' },
       });
       const getAllOfflineStudent = await this.studentPreRegRepository.find({
-        where: { isOnline: false, courseId: course },
+        where: { isOnline: false, courseId },
         order: { createdTime: 'ASC' },
       });
+
+      // Fetch all classes for the course
       const getClassesInCourse = await this.classroomRepository.find({
-        where: { courseId: course },
+        where: { courseId },
       });
-      getClassesInCourse.forEach(async (classes) => {
-        if (classes.isOnline) {
-          for (const student of gettAllOnlineStudent) {
-            if (classes.currentStudents > classes.maxStudents) {
-              break;
-            }
-            const getOneStudent = await this.studentRepository.findOne({
-              where: { userId: student.studentId },
-            });
-            classes.students.push(getOneStudent);
-            await this.classroomRepository.save(classes);
-            getOneStudent.classrooms.push(classes);
-            await this.studentRepository.save(getOneStudent);
-            gettAllOnlineStudent.pop();
-          }
-        } else {
-          for (const student of getAllOfflineStudent) {
-            if (classes.currentStudents > classes.maxStudents) {
-              break;
-            }
-            const getOneStudent = await this.studentRepository.findOne({
-              where: { userId: student.studentId },
-            });
-            classes.students.push(getOneStudent);
-            await this.classroomRepository.save(classes);
-            getOneStudent.classrooms.push(classes);
-            await this.studentRepository.save(getOneStudent);
-            gettAllOnlineStudent.pop();
-          }
+
+      // Divide online students into online classes
+      await this.divideStudentsIntoClasses(
+        gettAllOnlineStudent,
+        getClassesInCourse.filter((classroom) => classroom.isOnline),
+        15, // Max students per class
+      );
+
+      // Divide offline students into offline classes
+      await this.divideStudentsIntoClasses(
+        getAllOfflineStudent,
+        getClassesInCourse.filter((classroom) => !classroom.isOnline),
+        15, // Max students per class
+      );
+    }
+
+    console.log('Student division into classes completed.');
+  }
+
+  /**
+   * Divides students into classes, ensuring no class exceeds the maxStudents limit.
+   * If there are remaining students after filling all classes, distributes them starting from the first class again.
+   */
+  async divideStudentsIntoClasses(
+    students: StudentPreReg[], // List of students to divide
+    classrooms: Classroom[], // List of classrooms to fill
+    maxStudentsPerClass: number, // Max students per class
+  ): Promise<void> {
+    if (students.length === 0 || classrooms.length === 0) {
+      console.log('No students or classrooms to process.');
+      return;
+    }
+
+    let studentIndex = 0;
+
+    // First pass: Fill each class up to maxStudentsPerClass
+    for (const classroom of classrooms) {
+      while (
+        studentIndex < students.length &&
+        classroom.studentList.length < maxStudentsPerClass
+      ) {
+        const student = students[studentIndex];
+        const studentDetails = await this.studentRepository.findOne({
+          where: { userId: student.studentId },
+        });
+
+        if (studentDetails) {
+          classroom.studentList.push(student.studentId);
+          classroom.students.push(studentDetails);
+          studentDetails.classrooms.push(classroom);
+          studentDetails.classes.push(classroom.classId);
+          await this.classroomRepository.save(classroom);
+          await this.studentRepository.save(studentDetails);
         }
-      });
-    });
+
+        studentIndex++;
+      }
+    }
+
+    // Second pass: Distribute remaining students starting from the first class
+    while (studentIndex < students.length) {
+      for (const classroom of classrooms) {
+        if (studentIndex >= students.length) break;
+
+        const student = students[studentIndex];
+        const studentDetails = await this.studentRepository.findOne({
+          where: { userId: student.studentId },
+        });
+
+        if (studentDetails) {
+          classroom.students.push(studentDetails);
+          studentDetails.classrooms.push(classroom);
+          await this.classroomRepository.save(classroom);
+          await this.studentRepository.save(studentDetails);
+        }
+
+        studentIndex++;
+      }
+    }
+
+    console.log(
+      `Divided ${students.length} students into ${classrooms.length} classrooms.`,
+    );
   }
 }
