@@ -6,10 +6,22 @@ import { staffRole, Role } from '../entity';
 export class UpdateStaffDTO extends PartialType(CreateStaffDTO) {
   @IsOptional()
   @IsString()
-  password?: string;
+  staffName?: string;
+
+  @IsOptional()
+  @IsString()
+  staffPassword?: string;
 
   @ApiProperty({ enum: staffRole, required: false })
   @IsEnum(staffRole)
   @IsOptional()
-  role?: Role;
+  staffRole?: Role;
+
+  @IsOptional()
+  @IsString()
+  staffEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  staffPhone?: string;
 }

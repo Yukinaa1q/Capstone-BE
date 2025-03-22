@@ -1,10 +1,15 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Staff, staffRole } from './entity';
 import { Repository } from 'typeorm';
 import { generateCustomID, hashPassword } from '@utils';
 import { CreateStaffDTO } from './dto';
 import { UpdateStaffDTO } from './dto/updateStaff.dto';
+import { StaffListViewDTO } from './dto/staffListView.dto';
 import { QualifiedSubject, Tutor } from '@modules/tutor/entity/tutor.entity';
 import { ResponseCode, ServiceException } from '@common/error';
 
@@ -59,19 +64,48 @@ export class StaffService {
   }
 
   async editStaffInfo(userId: string, data: UpdateStaffDTO): Promise<Staff> {
-    if (
-      data.role &&
-      !Object.values(staffRole).includes(data.role as staffRole)
-    ) {
-      throw new BadRequestException('Invalid staff role');
+    const staff = await this.staffRepository.findOne({
+      where: { userId: userId },
+    });
+
+    if (!staff) {
+      throw new NotFoundException('Staff not found');
+    }
+    const updateData: Partial<Staff> = {};
+
+    if (data.staffName) {
+      updateData.name = data.staffName;
     }
 
-    if (data.password) {
-      data.password = await hashPassword(data.password);
+    if (data.staffEmail) {
+      const existingStaff = await this.staffRepository.findOne({
+        where: { email: data.staffEmail },
+      });
+      if (existingStaff && existingStaff.userId !== userId) {
+        throw new ServiceException(
+          ResponseCode.SAME_EMAIL_ERROR,
+          'This email has been registered',
+        );
+      }
+      updateData.email = data.staffEmail;
     }
 
-    await this.staffRepository.update(userId, data);
+    if (data.staffPhone) {
+      updateData.phone = data.staffPhone;
+    }
 
+    if (data.staffPassword) {
+      updateData.password = await hashPassword(data.staffPassword);
+    }
+
+    if (data.staffRole) {
+      if (!Object.values(staffRole).includes(data.staffRole as staffRole)) {
+        throw new BadRequestException('Invalid staff role');
+      }
+      updateData.role = data.staffRole;
+    }
+
+    await this.staffRepository.update(userId, updateData);
     return this.staffRepository.findOne({ where: { userId: userId } });
   }
 
@@ -80,11 +114,31 @@ export class StaffService {
     return listStaff;
   }
 
+  async getAllStaffForTable(): Promise<StaffListViewDTO[]> {
+    const staffs = await this.staffRepository.find();
+    const result = [];
+    staffs.forEach((staff, index) => {
+      result[index] = {} as StaffListViewDTO;
+      result[index].staffName = staff.name;
+      result[index].staffId = staff.userId;
+      result[index].staffCode = staff.staffCode;
+      result[index].staffEmail = staff.email;
+      result[index].staffPhone = staff.phone;
+      result[index].staffRole = staff.role;
+    });
+    return result;
+  }
+
   async findOneStaff(data: string): Promise<Staff> {
     const findStaff = await this.staffRepository.findOne({
       where: { email: data },
     });
     return findStaff;
+  }
+
+  async deleteStaff(userId: string): Promise<string> {
+    await this.staffRepository.delete({ userId });
+    return 'Staff deleted successfully';
   }
 
   async addQualification(

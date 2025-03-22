@@ -2,14 +2,16 @@ import {
   ApiAuthController,
   ApiResponseArray,
   ApiResponseObject,
+  ApiResponseString,
 } from '@services/openApi';
 import { StaffService } from './staff.service';
-import { Body, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { Staff } from './entity';
 import { CreateStaffDTO } from './dto';
 import { CurrentUser } from '@common/decorator';
 import { UpdateStaffDTO } from './dto/updateStaff.dto';
 import { QualifiedSubject, Tutor } from '@modules/tutor/entity/tutor.entity';
+import { StaffListViewDTO } from './dto/staffListView.dto';
 
 @ApiAuthController('staff')
 export class StaffController {
@@ -27,13 +29,34 @@ export class StaffController {
     return this.staffService.getAllStaff();
   }
 
-  @Post('/update')
+  @Get('all-staff-table')
+  @ApiResponseArray(StaffListViewDTO)
+  async getAllStaffForTable(): Promise<StaffListViewDTO[]> {
+    return this.staffService.getAllStaffForTable();
+  }
+
+  @Put('/update/:staffId')
   @ApiResponseObject(Staff)
   async updateStaffInfo(
+    @Param('staffId') staffId: string,
+    @Body() data: UpdateStaffDTO,
+  ): Promise<Staff> {
+    return this.staffService.editStaffInfo(staffId, data);
+  }
+
+  @Post('/update')
+  @ApiResponseObject(Staff)
+  async updateCurrentStaffInfo(
     @CurrentUser() staff: any,
     @Body() data: UpdateStaffDTO,
   ): Promise<Staff> {
     return this.staffService.editStaffInfo(staff.userId, data);
+  }
+
+  @Delete('delete-staff/:id')
+  @ApiResponseString()
+  async deleteStaff(@Param('id') id: string): Promise<string> {
+    return this.staffService.deleteStaff(id);
   }
 
   @Post('/add-qualification/:tutorId')

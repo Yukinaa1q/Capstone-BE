@@ -3,7 +3,7 @@ import {
   ApiResponseArray,
   ApiResponseObject,
 } from '@services/openApi';
-import { Body, Get, Post } from '@nestjs/common';
+import { Body, Get, Param, Post } from '@nestjs/common';
 
 import { CurrentUser } from '@common/decorator';
 import { TutorService } from './tutor.service';
@@ -11,6 +11,7 @@ import { CreateTutorDTO } from './dto/createTutor.dto';
 import { Tutor } from './entity/tutor.entity';
 import { UpdateTutorDTO } from './dto/updateTutor.dto';
 import { TutorListViewDTO } from './dto/tutorListview.dto';
+import { TutorDetailDTO } from './dto/tutorDetails.dto';
 
 @ApiAuthController('tutor')
 export class TutorController {
@@ -32,6 +33,14 @@ export class TutorController {
   @ApiResponseArray(TutorListViewDTO)
   async getAllTutorForTable(): Promise<TutorListViewDTO[]> {
     return this.tutorService.getAllTutorForTable();
+  }
+
+  @Get('/detail/:userId')
+  @ApiResponseObject(TutorDetailDTO)
+  async getStudentDetail(
+    @Param('userId') userId: string,
+  ): Promise<TutorDetailDTO> {
+    return this.tutorService.getTutorDetail(userId);
   }
 
   @Post('/update')
