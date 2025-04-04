@@ -11,6 +11,7 @@ import {
 } from 'class-validator';
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { Classroom } from '@modules/class/entity/class.entity';
+import { RoomOccupied } from './roomOccupied.entity';
 
 @Entity({ name: 'room' })
 export class Room {
@@ -55,4 +56,7 @@ export class Room {
   @IsArray()
   @IsString({ each: true })
   classesIdList: string[];
+
+  @OneToMany(() => RoomOccupied, (occupy) => occupy.room)
+  occupancies: RoomOccupied[];
 }

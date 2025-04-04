@@ -123,3 +123,22 @@ export class ResponseViewApiP2 {
   @IsObject()
   meta: PaginationMeta;
 }
+
+export class TutorRegSchedule {
+  @IsString()
+  studyWeek: string;
+
+  @IsString()
+  studyShift: string;
+
+  @IsBoolean()
+  online: boolean;
+}
+
+export class NewTutorRegDTO {
+  @IsString()
+  courseId: string;
+
+  @IsArray()
+  registrationList: TutorRegSchedule[];
+}

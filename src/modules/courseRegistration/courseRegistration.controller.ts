@@ -14,6 +14,7 @@ import {
   CourseUnRegP1DTO,
   InputStudentP1RegDTO,
   InputTutorP1RegDTO,
+  NewTutorRegDTO,
   ResponseViewApi,
   UnregisterStudentP1,
   UnregisterTutorP1,
@@ -98,6 +99,15 @@ export class Phase1RegisterController {
       limit,
       q,
     );
+  }
+
+  @Post('new-tutor-register-class')
+  @ApiResponseString()
+  async newRegisterClassTutor(
+    @CurrentUser() user: any,
+    @Body() data: NewTutorRegDTO,
+  ): Promise<string> {
+    return this.registrationService.newTutorReg(user.userId, data);
   }
 
   @Delete('student/delete')

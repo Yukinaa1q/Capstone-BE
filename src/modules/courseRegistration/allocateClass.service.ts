@@ -30,7 +30,7 @@ export class AllocateClassService {
     private readonly roomRepository: Repository<Room>,
   ) {}
 
-  @Cron(CronExpression.EVERY_5_HOURS)
+  // @Cron(CronExpression.EVERY_5_HOURS)
   async handleStudentDividedCron() {
     await this.createClass();
     await this.studentDividedToClass();

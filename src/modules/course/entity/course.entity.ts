@@ -101,4 +101,9 @@ export class Course {
   @ApiPropertyOptional()
   @IsOptional()
   classes?: string[];
+
+  @Column({ nullable: true })
+  @ApiProperty()
+  @IsNumber()
+  duration: number;
 }

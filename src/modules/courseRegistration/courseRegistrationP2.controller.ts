@@ -88,4 +88,12 @@ export class Phase2RegisterController {
       q,
     );
   }
+
+  @Get('view-random-unregistered-classes')
+  @ApiResponseArray(Classroom)
+  async viewRandomUnregisteredClass(
+    @CurrentUser() user: any,
+  ): Promise<Classroom[]> {
+    return this.registerP2Service.viewRandomUnregisteredClasses(user.userId);
+  }
 }

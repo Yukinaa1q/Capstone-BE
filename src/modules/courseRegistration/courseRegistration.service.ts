@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { StudentPreReg } from './entity/studentPreReg.entity';
-import { In, Like, Not, Repository } from 'typeorm';
+import { In, Like, MoreThan, Not, Repository } from 'typeorm';
+import { addMonths } from 'date-fns';
 import {
   CourseRegP1DTO,
   CourseUnRegP1DTO,
   InputStudentP1RegDTO,
   InputTutorP1RegDTO,
+  NewTutorRegDTO,
   UnregisterStudentP1,
   UnregisterTutorP1,
 } from './dto';
@@ -14,6 +16,11 @@ import { ResponseCode, ServiceException } from '@common/error';
 import { TutorPreReg } from './entity/tutorPreReg.entity';
 import { CourseService } from '@modules/course/course.service';
 import { Course } from '@modules/course/entity/course.entity';
+import { Classroom } from '@modules/class/entity/class.entity';
+import { Room } from './entity/room.entity';
+import { Tutor } from '@modules/tutor/entity/tutor.entity';
+import { generateCustomID } from '@utils';
+import { RoomOccupied } from './entity/roomOccupied.entity';
 
 export class PaginationMeta {
   totalItems: number;
@@ -32,6 +39,14 @@ export class CourseRegistrationService {
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
     private readonly courseService: CourseService,
+    @InjectRepository(Classroom)
+    private readonly classRepository: Repository<Classroom>,
+    @InjectRepository(Room)
+    private readonly roomRepository: Repository<Room>,
+    @InjectRepository(Tutor)
+    private readonly tutorRepository: Repository<Tutor>,
+    @InjectRepository(RoomOccupied)
+    private readonly roomOccupiedRepository: Repository<RoomOccupied>,
   ) {}
 
   getRandomElements<T>(array: T[], count: number): T[] {
@@ -40,6 +55,15 @@ export class CourseRegistrationService {
 
     // Return the first `count` elements
     return shuffled.slice(0, count);
+  }
+
+  async generateClassesCode(): Promise<string> {
+    const lastClass = await this.classRepository
+      .createQueryBuilder('classroom')
+      .orderBy('classroom.classCode', 'DESC')
+      .getOne();
+    const lastNumber = lastClass ? parseInt(lastClass.classCode.slice(2)) : 0;
+    return generateCustomID('CL', lastNumber + 1);
   }
 
   async studentPreRegP1(data: InputStudentP1RegDTO): Promise<string> {
@@ -304,5 +328,130 @@ export class CourseRegistrationService {
         itemsPerPage: limit,
       },
     };
+  }
+
+  async newTutorReg(userId: string, data: NewTutorRegDTO): Promise<string> {
+    //check if that tutor is having another class of another subject at that same time
+
+    let conditionCheck = data.registrationList.map((item) => {
+      return {
+        studyWeek: item.studyWeek,
+        studyShift: item.studyShift,
+        online: item.online,
+        tutorId: userId,
+      };
+    });
+
+    const findTutorDup = await this.classRepository.find({
+      where: conditionCheck,
+    });
+
+    if (findTutorDup.length > 0) {
+      conditionCheck = conditionCheck.filter((item) => {
+        const isDup = findTutorDup.some((dup) => {
+          dup.studyWeek === item.studyWeek &&
+            dup.studyShift === item.studyShift &&
+            dup.tutorId === item.tutorId;
+        });
+
+        return !isDup;
+      });
+    }
+
+    const tutor = await this.tutorRepository.findOne({
+      where: { userId },
+    });
+    const course = await this.courseRepository.findOne({
+      where: { courseId: data.courseId },
+    });
+
+    let result: { studyShift: string; studyWeek: string }[] = [];
+
+    for (const item of conditionCheck) {
+      // check if there s room if tutor register offline class
+      let roomie: Room = null;
+
+      if (!item.online) {
+        roomie = await this.roomRepository
+          .createQueryBuilder('room')
+          .leftJoinAndSelect(
+            'room.occupancies',
+            'occupancy',
+            'occupancy.studyWeek = :week AND occupancy.studyShift = :shift',
+            { week: item.studyWeek, shift: item.studyShift },
+          )
+          .where('occupancy.id IS NULL') // Rooms with NO booking at this timeslot
+          .getOne();
+
+        if (!roomie) {
+          result.push({
+            studyWeek: item.studyWeek,
+            studyShift: item.studyShift,
+          });
+        }
+      } else if (item.online) {
+        roomie = await this.roomRepository
+          .createQueryBuilder('room')
+          .leftJoinAndSelect(
+            'room.occupancies',
+            'occupancy',
+            'occupancy.studyWeek = :week AND occupancy.studyShift = :shift',
+            { week: item.studyWeek, shift: item.studyShift },
+          )
+          .where('occupancy.id IS NULL') // Rooms with NO booking at this timeslot
+          .getOne();
+
+        //roomie = this.roomRepository.create() // integrate GCP (later )
+      }
+
+      const classCode = await this.generateClassesCode();
+      const createClassroomDTO = {
+        courseTitle: course.courseTitle,
+        courseCode: course.courseCode,
+        maxStudents: 30,
+        classCode: classCode, // chắc classCode cũng tự tạo luôn :>>
+        studyWeek: item.studyWeek,
+        studyShift: item.studyShift,
+        isOnline: item.online,
+        courseId: course.courseId,
+        classRoom: roomie?.roomCode ?? 'None',
+        currentStudents: 0,
+        tutorId: tutor.userId,
+        roomId: roomie.roomId,
+        startDate: new Date().toISOString(),
+        endDate: addMonths(new Date(), course.duration).toISOString(),
+      };
+      const newClassroom = this.classRepository.create(createClassroomDTO);
+      await this.classRepository.save(newClassroom);
+      course.classes.push(newClassroom.classId);
+      await this.courseRepository.save(course);
+      roomie.classesIdList.push(newClassroom.classId);
+      await this.roomRepository.save(roomie);
+      if (item.online) {
+        const newOccupied = this.roomOccupiedRepository.create({
+          roomId: roomie.roomId,
+          room: roomie,
+          studyShift: item.studyShift,
+          studyWeek: item.studyWeek,
+        });
+        await this.roomOccupiedRepository.save(newOccupied);
+      }
+      tutor.classList.push(newClassroom.classId);
+      tutor.classrooms.push(newClassroom);
+      await this.tutorRepository.save(tutor);
+      course.classes.push(newClassroom.classId);
+      course.classrooms.push(newClassroom);
+      await this.courseRepository.save(course);
+    }
+    if (result.length > 0) {
+      let finalString = '';
+      result.forEach((item) => {
+        finalString.concat(`Shift: ${item.studyShift} Day: ${item.studyWeek}`);
+      });
+      return finalString.concat(
+        'Your others choices are accepted and class(es) created',
+      );
+    }
+    return 'Successfully registered classes';
   }
 }

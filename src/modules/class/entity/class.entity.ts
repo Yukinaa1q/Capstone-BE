@@ -125,4 +125,14 @@ export class Classroom {
   @ApiProperty()
   @IsArray()
   studentList: string[];
+
+  @Column({ nullable: true })
+  @ApiPropertyOptional()
+  @IsString()
+  startDate?: string;
+
+  @Column({ nullable: true })
+  @ApiPropertyOptional()
+  @IsString()
+  endDate: string;
 }

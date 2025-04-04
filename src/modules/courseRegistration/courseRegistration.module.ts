@@ -13,6 +13,7 @@ import { Room } from './entity/room.entity';
 import { AllocateClassService } from './allocateClass.service';
 import { CourseRegistrationP2Service } from './courseRegistrationP2.service';
 import { Phase2RegisterController } from './courseRegistrationP2.controller';
+import { RoomOccupied } from './entity/roomOccupied.entity';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { Phase2RegisterController } from './courseRegistrationP2.controller';
       Tutor,
       Classroom,
       Room,
+      RoomOccupied,
     ]),
     CourseModule,
   ],

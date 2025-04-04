@@ -3,7 +3,7 @@ import { Student } from '@modules/student/entity/student.entity';
 import { Tutor } from '@modules/tutor/entity/tutor.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { PaginationMeta } from './courseRegistration.service';
 
 @Injectable()
@@ -123,6 +123,16 @@ export class CourseRegistrationP2Service {
         itemsPerPage: limit,
       },
     };
+  }
+
+  async viewRandomUnregisteredClasses(userId: string) {
+    const unregisteredClasses = await this.classroomRepository
+      .createQueryBuilder('classroom')
+      .where(':userId != ANY(classroom.studentList)', { userId }) // Alternative syntax
+      .orderBy('RANDOM()') // PostgreSQL/SQLite
+      .take(5)
+      .getMany();
+    return unregisteredClasses;
   }
 
   async registerClassStudent(userId: string, classId: string): Promise<string> {
