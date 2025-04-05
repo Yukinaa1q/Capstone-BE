@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsString, IsUUID } from 'class-validator';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Room } from './room.entity';
 
 @Entity({ name: 'room_occupied' })
@@ -23,8 +23,6 @@ export class RoomOccupied {
   studyWeek: string;
 
   @ManyToOne(() => Room, (room) => room.occupancies)
+  @JoinColumn({ name: 'roomId' })
   room: Room;
-
-  @Column({ name: 'roomId' })
-  roomId: string;
 }

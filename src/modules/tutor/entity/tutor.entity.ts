@@ -39,9 +39,8 @@ export class Tutor extends User {
   @IsBoolean()
   isVerified: boolean;
 
-  @ApiPropertyOptional()
   @OneToMany(() => Classroom, (classroom) => classroom.tutor)
-  classrooms?: Classroom[];
+  classrooms: Classroom[];
 
   @Column({ default: [], type: 'text', array: true })
   @ApiProperty()

@@ -337,21 +337,32 @@ export class CourseRegistrationService {
       return {
         studyWeek: item.studyWeek,
         studyShift: item.studyShift,
-        online: item.online,
+        isOnline: item.online,
         tutorId: userId,
       };
     });
 
+    let conditionCheck1 = data.registrationList.map((item) => {
+      return {
+        studyWeek: item.studyWeek,
+        studyShift: item.studyShift,
+        tutorId: userId,
+      };
+    });
+
+    // get all classes that has the three attr
     const findTutorDup = await this.classRepository.find({
-      where: conditionCheck,
+      where: conditionCheck1,
     });
 
     if (findTutorDup.length > 0) {
       conditionCheck = conditionCheck.filter((item) => {
         const isDup = findTutorDup.some((dup) => {
-          dup.studyWeek === item.studyWeek &&
+          return (
+            dup.studyWeek === item.studyWeek &&
             dup.studyShift === item.studyShift &&
-            dup.tutorId === item.tutorId;
+            dup.tutor.userId === item.tutorId
+          );
         });
 
         return !isDup;
@@ -371,16 +382,16 @@ export class CourseRegistrationService {
       // check if there s room if tutor register offline class
       let roomie: Room = null;
 
-      if (!item.online) {
+      if (!item.isOnline) {
         roomie = await this.roomRepository
           .createQueryBuilder('room')
           .leftJoinAndSelect(
             'room.occupancies',
-            'occupancy',
-            'occupancy.studyWeek = :week AND occupancy.studyShift = :shift',
+            'room_occupied',
+            'room_occupied.studyWeek = :week AND room_occupied.studyShift = :shift',
             { week: item.studyWeek, shift: item.studyShift },
           )
-          .where('occupancy.id IS NULL') // Rooms with NO booking at this timeslot
+          .where('room_occupied.id IS NULL') // Rooms with NO booking at this timeslot
           .getOne();
 
         if (!roomie) {
@@ -389,19 +400,23 @@ export class CourseRegistrationService {
             studyShift: item.studyShift,
           });
         }
-      } else if (item.online) {
+      } else if (item.isOnline) {
         roomie = await this.roomRepository
           .createQueryBuilder('room')
           .leftJoinAndSelect(
             'room.occupancies',
-            'occupancy',
-            'occupancy.studyWeek = :week AND occupancy.studyShift = :shift',
+            'room_occupied',
+            'room_occupied.studyWeek = :week AND room_occupied.studyShift = :shift',
             { week: item.studyWeek, shift: item.studyShift },
           )
-          .where('occupancy.id IS NULL') // Rooms with NO booking at this timeslot
+          .where('room_occupied.id IS NULL') // Rooms with NO booking at this timeslot
           .getOne();
 
         //roomie = this.roomRepository.create() // integrate GCP (later )
+      }
+
+      if (result.length === conditionCheck.length) {
+        return 'There is no room available for your offline class';
       }
 
       const classCode = await this.generateClassesCode();
@@ -412,7 +427,7 @@ export class CourseRegistrationService {
         classCode: classCode, // chắc classCode cũng tự tạo luôn :>>
         studyWeek: item.studyWeek,
         studyShift: item.studyShift,
-        isOnline: item.online,
+        isOnline: item.isOnline,
         courseId: course.courseId,
         classRoom: roomie?.roomCode ?? 'None',
         currentStudents: 0,
@@ -427,20 +442,20 @@ export class CourseRegistrationService {
       await this.courseRepository.save(course);
       roomie.classesIdList.push(newClassroom.classId);
       await this.roomRepository.save(roomie);
-      if (item.online) {
+      if (!item.isOnline) {
         const newOccupied = this.roomOccupiedRepository.create({
-          roomId: roomie.roomId,
-          room: roomie,
           studyShift: item.studyShift,
           studyWeek: item.studyWeek,
         });
         await this.roomOccupiedRepository.save(newOccupied);
+        roomie.occupancies.push(newOccupied);
+        await this.roomRepository.save(roomie);
       }
       tutor.classList.push(newClassroom.classId);
-      tutor.classrooms.push(newClassroom);
+      // tutor.classrooms.push(newClassroom);
       await this.tutorRepository.save(tutor);
       course.classes.push(newClassroom.classId);
-      course.classrooms.push(newClassroom);
+      // course.classrooms.push(newClassroom);
       await this.courseRepository.save(course);
     }
     if (result.length > 0) {
