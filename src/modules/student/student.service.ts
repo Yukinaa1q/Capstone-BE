@@ -7,12 +7,16 @@ import { UpdateStudentDTO } from './dto/updateStudent.dto';
 import { Student } from './entity/student.entity';
 import { StudentListViewDTO } from './dto/studentListView.dto';
 import { StudentDetailDTO } from './dto/studentDetails.dto';
+import { Classroom } from '@modules/class/entity/class.entity';
+import { ResponseCode, ServiceException } from '@common/error';
 
 @Injectable()
 export class StudentService {
   constructor(
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>,
+    @InjectRepository(Classroom)
+    private readonly classroomRepository: Repository<Classroom>,
   ) {}
 
   async getNextStudentID(): Promise<string> {
@@ -93,5 +97,70 @@ export class StudentService {
     studentDetail.phoneNumber = student.phone;
 
     return studentDetail;
+  }
+
+  async registerForClass(studentId: string, classId: string): Promise<Student> {
+    // Find the classroom by ID
+    const classroom = await this.classroomRepository.findOne({
+      where: { classId },
+    });
+
+    if (!classroom) {
+      throw new ServiceException(
+        ResponseCode.CLASS_NOT_FOUND,
+        'Class not found',
+      );
+    }
+
+    if (classroom.currentStudents >= classroom.maxStudents) {
+      throw new ServiceException(
+        ResponseCode.CLASS_FULL,
+        'Class is already at full capacity',
+      );
+    }
+
+    const student = await this.studentRepository.findOne({
+      where: { userId: studentId },
+      relations: ['classrooms'],
+    });
+
+    if (!student) {
+      throw new ServiceException(
+        ResponseCode.USER_NOT_FOUND,
+        'Student not found',
+      );
+    }
+
+    const isAlreadyRegistered = student.classrooms?.some(
+      (cls) => cls.classId === classId,
+    );
+
+    if (isAlreadyRegistered) {
+      throw new ServiceException(
+        ResponseCode.REGISTERED_COURSE,
+        'Student is already registered for this class',
+      );
+    }
+
+    if (!classroom.students) {
+      classroom.students = [];
+    }
+    classroom.students.push(student);
+
+    classroom.studentList.push(studentId);
+
+    classroom.currentStudents = (classroom.currentStudents || 0) + 1;
+
+    await this.classroomRepository.save(classroom);
+
+    if (!student.classes) {
+      student.classes = [];
+    }
+    student.classrooms.push(classroom);
+    student.classes.push(classroom.classCode);
+
+    await this.studentRepository.save(student);
+
+    return student;
   }
 }
