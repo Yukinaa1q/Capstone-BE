@@ -74,6 +74,12 @@ export class Course {
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
+  courseDuration: number;
+
+  @Column()
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
   coursePrice: number;
 
   @Column({ default: 0 })
