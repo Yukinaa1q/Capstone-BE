@@ -70,12 +70,6 @@ export class Course {
   @IsNotEmpty()
   courseLevel: string;
 
-  @Column({ nullable: true })
-  @ApiPropertyOptional()
-  @IsNumber()
-  @IsOptional()
-  courseDuration?: number;
-
   @Column()
   @ApiProperty()
   @IsNumber()

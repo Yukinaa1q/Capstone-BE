@@ -7,5 +7,5 @@ export class CreateCourseDTO extends OmitUpdateType(Course, ['courseId']) {
   courseCode: string;
 
   @IsNumber()
-  courseDuration: number;
+  duration: number;
 }

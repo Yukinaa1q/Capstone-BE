@@ -15,5 +15,5 @@ export class CourseCodeAndTitleDTO {
 
   @ApiProperty()
   @IsNumber()
-  courseDuration: number;
+  duration: number;
 }

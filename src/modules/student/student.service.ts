@@ -99,7 +99,7 @@ export class StudentService {
     return studentDetail;
   }
 
-  async registerForClass(studentId: string, classId: string): Promise<Student> {
+  async registerForClass(studentId: string, classId: string): Promise<string> {
     // Find the classroom by ID
     const classroom = await this.classroomRepository.findOne({
       where: { classId },
@@ -121,7 +121,6 @@ export class StudentService {
 
     const student = await this.studentRepository.findOne({
       where: { userId: studentId },
-      relations: ['classrooms'],
     });
 
     if (!student) {
@@ -142,25 +141,16 @@ export class StudentService {
       );
     }
 
-    if (!classroom.students) {
-      classroom.students = [];
-    }
-    classroom.students.push(student);
-
     classroom.studentList.push(studentId);
 
     classroom.currentStudents = (classroom.currentStudents || 0) + 1;
 
     await this.classroomRepository.save(classroom);
 
-    if (!student.classes) {
-      student.classes = [];
-    }
-    student.classrooms.push(classroom);
-    student.classes.push(classroom.classCode);
+    student.classes.push(classroom.classId);
 
     await this.studentRepository.save(student);
 
-    return student;
+    return 'Successfully registered ';
   }
 }

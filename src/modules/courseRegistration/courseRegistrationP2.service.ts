@@ -128,10 +128,29 @@ export class CourseRegistrationP2Service {
   async viewRandomUnregisteredClasses(userId: string) {
     const unregisteredClasses = await this.classroomRepository
       .createQueryBuilder('classroom')
+      .leftJoinAndSelect('classroom.course', 'course')
+      .leftJoinAndSelect('classroom.tutor', 'tutor')
       .where('NOT (:userId = ANY(classroom.studentList))', { userId })
       .take(5)
       .getMany();
-    return unregisteredClasses;
+
+    const result = [];
+    unregisteredClasses.forEach((item) =>
+      result.push({
+        classId: item.classId,
+        registrationStartDate: new Date(item.startDate).toLocaleDateString(),
+        registrationEndDate: new Date(item.endDate).toLocaleDateString(),
+        currentStudents: item.currentStudents,
+        maxStudents: item.maxStudents,
+        courseTitle: item.courseTitle,
+        courseCode: item.courseCode,
+        courseId: item.courseId,
+        coursePrice: item.course.coursePrice,
+        courseImage: item.course.courseImage,
+        tutor: item.tutor.name,
+      }),
+    );
+    return result;
   }
 
   async registerClassStudent(userId: string, classId: string): Promise<string> {

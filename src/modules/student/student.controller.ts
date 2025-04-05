@@ -2,6 +2,7 @@ import {
   ApiAuthController,
   ApiResponseArray,
   ApiResponseObject,
+  ApiResponseString,
 } from '@services/openApi';
 import { StudentService } from './student.service';
 import { Body, Get, Param, Post } from '@nestjs/common';
@@ -53,11 +54,11 @@ export class StudentController {
   }
 
   @Post('/register-class')
-  @ApiResponseObject(Student)
+  @ApiResponseString()
   async registerForClass(
     @CurrentUser() student: any,
     @Body() data: ClassRegisterDTO,
-  ): Promise<Student> {
+  ): Promise<string> {
     return this.studentService.registerForClass(student.userId, data.classId);
   }
 }
