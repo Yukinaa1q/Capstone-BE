@@ -128,8 +128,7 @@ export class CourseRegistrationP2Service {
   async viewRandomUnregisteredClasses(userId: string) {
     const unregisteredClasses = await this.classroomRepository
       .createQueryBuilder('classroom')
-      .where(':userId != ANY(classroom.studentList)', { userId }) // Alternative syntax
-      .orderBy('RANDOM()') // PostgreSQL/SQLite
+      .where('NOT (:userId = ANY(classroom.studentList))', { userId })
       .take(5)
       .getMany();
     return unregisteredClasses;
