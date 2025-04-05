@@ -11,6 +11,7 @@ import { UpdateStudentDTO } from './dto/updateStudent.dto';
 import { Student } from './entity/student.entity';
 import { StudentListViewDTO } from './dto/studentListView.dto';
 import { StudentDetailDTO } from './dto/studentDetails.dto';
+import { ClassRegisterDTO } from './dto/classRegister.dto';
 
 @ApiAuthController('student')
 export class StudentController {
@@ -49,5 +50,14 @@ export class StudentController {
     @Body() data: UpdateStudentDTO,
   ): Promise<Student> {
     return this.studentService.editStudentInfo(student.userId, data);
+  }
+
+  @Post('/register-class')
+  @ApiResponseObject(Student)
+  async registerForClass(
+    @CurrentUser() student: any,
+    @Body() data: ClassRegisterDTO,
+  ): Promise<Student> {
+    return this.studentService.registerForClass(student.userId, data.classId);
   }
 }
