@@ -27,10 +27,19 @@ export class ViewClassDetailDTO {
   courseCode: string;
 
   @IsString()
-  learningDuration: string;
+  courseImage: string;
 
   @IsString()
-  registrationDuration: string;
+  registrationStartDate: string;
+
+  @IsString()
+  registrationEndDate: string;
+
+  @IsString()
+  studyStartDate: string;
+
+  @IsString()
+  studyEndDate: string;
 
   @IsString()
   tutor: string;

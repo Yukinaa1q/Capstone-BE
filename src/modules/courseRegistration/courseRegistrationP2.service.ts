@@ -5,6 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Not, Repository } from 'typeorm';
 import { PaginationMeta } from './courseRegistration.service';
+import { addDays, addMonths } from 'date-fns';
 
 @Injectable()
 export class CourseRegistrationP2Service {
@@ -138,8 +139,20 @@ export class CourseRegistrationP2Service {
     unregisteredClasses.forEach((item) =>
       result.push({
         classId: item.classId,
+        classCode: item.classCode,
         registrationStartDate: new Date(item.startDate).toLocaleDateString(),
-        registrationEndDate: new Date(item.endDate).toLocaleDateString(),
+        registrationEndDate: addDays(
+          new Date(item.startDate),
+          15,
+        ).toLocaleDateString(),
+        studyStartDate: addDays(
+          new Date(item.startDate),
+          15,
+        ).toLocaleDateString(),
+        studyEndDate: addMonths(
+          addDays(new Date(item.startDate), 15),
+          item.course.duration,
+        ).toLocaleDateString(),
         currentStudents: item.currentStudents,
         maxStudents: item.maxStudents,
         courseTitle: item.courseTitle,

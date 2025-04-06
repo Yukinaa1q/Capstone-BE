@@ -10,6 +10,7 @@ import { UpdateClassroomDTO } from './dto/updateClassroom.dto';
 import { ViewAllClassroomDTO } from './dto/viewAllClassroom.dto';
 import { ViewClassDetailDTO } from './dto/viewClassDetail.dto';
 import { Classroom } from './entity/class.entity';
+import { addDays, addMonths } from 'date-fns';
 
 @Injectable()
 export class ClassroomService {
@@ -105,8 +106,22 @@ export class ClassroomService {
     const result = {} as ViewClassDetailDTO;
     result.courseTitle = findClass.course.courseTitle;
     result.courseCode = findClass.courseCode;
-    result.learningDuration = 'default';
-    result.registrationDuration = 'default';
+    result.courseImage = findClass.course.courseImage;
+    result.registrationStartDate = new Date(
+      findClass.startDate,
+    ).toLocaleDateString();
+    result.registrationEndDate = addDays(
+      new Date(findClass.startDate),
+      15,
+    ).toLocaleDateString();
+    result.studyStartDate = addDays(
+      new Date(findClass.startDate),
+      15,
+    ).toLocaleDateString();
+    result.studyEndDate = addMonths(
+      addDays(new Date(findClass.startDate), 15),
+      findClass.course.duration,
+    ).toLocaleDateString();
     result.tutor = findClass.tutor.name;
     result.tutorId = findClass.tutor.tutorCode;
     result.courseDescription = findClass.course.courseDescription;
