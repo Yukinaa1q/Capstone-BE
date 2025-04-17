@@ -91,9 +91,13 @@ export class ClassroomService {
         classId: classs.classId,
         classCode: classs.classCode,
         classStudents: classs.maxStudents,
+        classRegisteredStudents: classs.currentStudents,
         tutorId: classs.tutor.tutorCode,
         tutor: classs.tutor.name,
+        room: classs.classRoom || 'N/A',
+        openStatus: 'not open',
       });
+      //temporary solution
     });
     return result;
   }
