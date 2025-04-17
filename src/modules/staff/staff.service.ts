@@ -12,6 +12,8 @@ import { UpdateStaffDTO } from './dto/updateStaff.dto';
 import { StaffListViewDTO } from './dto/staffListView.dto';
 import { QualifiedSubject, Tutor } from '@modules/tutor/entity/tutor.entity';
 import { ResponseCode, ServiceException } from '@common/error';
+import { Student } from '@modules/student/entity/student.entity';
+import { UpdateStudentProfileDTO } from '@modules/student/dto/updateStudentProfile.dto';
 
 @Injectable()
 export class StaffService {
@@ -20,6 +22,8 @@ export class StaffService {
     private readonly staffRepository: Repository<Staff>,
     @InjectRepository(Tutor)
     private readonly tutorRepository: Repository<Tutor>,
+    @InjectRepository(Student)
+    private readonly studentRepository: Repository<Student>,
   ) {}
 
   async getNextStaffID(): Promise<string> {
@@ -196,5 +200,39 @@ export class StaffService {
     );
     await this.tutorRepository.save(tutor);
     return tutor.qualifiedSubject;
+  }
+
+  async updateStudentProfile(
+    studentId: string,
+    data: UpdateStudentProfileDTO,
+  ): Promise<Student> {
+    const student = await this.studentRepository.findOne({
+      where: { userId: studentId },
+    });
+    if (!student) {
+      throw new NotFoundException('Student not found');
+    }
+    if (data.email) {
+      const existingStudent = await this.studentRepository.findOne({
+        where: { email: data.email },
+      });
+      if (existingStudent && existingStudent.userId !== studentId) {
+        throw new ServiceException(
+          ResponseCode.SAME_EMAIL_ERROR,
+          'This email has been registered',
+        );
+      }
+    }
+    if (data.name) {
+      student.name = data.name;
+    }
+    if (data.dob) {
+      student.DOB = data.dob;
+    }
+    if (data.phoneNumber) {
+      student.phone = data.phoneNumber;
+    }
+    await this.studentRepository.save(student);
+    return this.studentRepository.findOne({ where: { userId: studentId } });
   }
 }
