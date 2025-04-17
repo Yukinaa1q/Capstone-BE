@@ -4,6 +4,7 @@ import {
   IsBoolean,
   IsNumber,
   IsOptional,
+  isString,
   IsString,
 } from 'class-validator';
 
@@ -13,6 +14,9 @@ class studentDetail {
 
   @IsString()
   studentId: string;
+
+  @IsString()
+  studentCode: string;
 
   @IsString()
   @IsOptional()
@@ -76,6 +80,9 @@ export class ViewClassDetailDTO {
 
   @IsString()
   classId: string;
+
+  @IsString()
+  studyRoom: string;
 
   @IsArray()
   @IsOptional()
