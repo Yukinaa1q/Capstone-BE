@@ -236,4 +236,32 @@ export class StudentService {
       },
     };
   }
+
+  async unregisterStudentFromClass(
+    studentId: string,
+    classId: string,
+  ): Promise<string> {
+    const student = await this.studentRepository.findOne({
+      where: { userId: studentId },
+      relations: ['classrooms'],
+    });
+    if (!student) {
+      throw new ServiceException(
+        ResponseCode.USER_NOT_FOUND,
+        'Student not found',
+      );
+    }
+    if (!student.classes.includes(classId)) {
+      throw new ServiceException(
+        ResponseCode.CLASS_NOT_FOUND,
+        'Student not in class',
+      );
+    }
+    student.classes = student.classes.filter((c) => c !== classId);
+    student.classrooms = student.classrooms.filter(
+      (c) => c.classId !== classId,
+    );
+    await this.studentRepository.save(student);
+    return 'Successfully unregistered from class';
+  }
 }
