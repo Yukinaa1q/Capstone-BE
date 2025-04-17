@@ -5,7 +5,7 @@ import {
   ApiResponseString,
 } from '@services/openApi';
 import { StudentService } from './student.service';
-import { Body, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Get, Param, Post, Query, Delete } from '@nestjs/common';
 import { CreateStudentDTO } from './dto';
 import { CurrentUser } from '@common/decorator';
 import { UpdateStudentDTO } from './dto/updateStudent.dto';
@@ -70,5 +70,17 @@ export class StudentController {
     @Query('q') q: string,
   ) {
     return this.viewRegisteredClasses(user.userId, page, limit, q);
+  }
+
+  @Delete('/unregister-class/:classId')
+  @ApiResponseObject(String)
+  async unregisterStudentFromClass(
+    @CurrentUser() student: any,
+    @Param('classId') classId: string,
+  ): Promise<string> {
+    return this.studentService.unregisterStudentFromClass(
+      student.userId,
+      classId,
+    );
   }
 }

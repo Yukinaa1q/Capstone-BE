@@ -15,6 +15,9 @@ class studentDetail {
   studentId: string;
 
   @IsString()
+  studentCode: string;
+
+  @IsString()
   @IsOptional()
   avatarLink?: string;
 }
@@ -76,6 +79,9 @@ export class ViewClassDetailDTO {
 
   @IsString()
   classId: string;
+
+  @IsString()
+  studyRoom: string;
 
   @IsArray()
   @IsOptional()

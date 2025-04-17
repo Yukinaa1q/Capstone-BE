@@ -236,4 +236,84 @@ export class StudentService {
       },
     };
   }
+
+  async viewRegisteredClassesSimple(
+    userId: string,
+    page: number = 1, // Default to page 1
+    limit: number = 10, // Default to 10 items per page
+    search: string = '',
+  ) {
+    const findStudent = await this.studentRepository.findOne({
+      where: { userId: userId },
+    });
+    const classes = findStudent.classes;
+    const query = this.classroomRepository.createQueryBuilder('classroom');
+    if (classes.length > 0) {
+      query.where('classroom.classId IN (:...classes)', {
+        classes,
+      });
+    } else {
+      query.where('1 = 1'); // Always true condition
+    }
+    if (search) {
+      query.andWhere('LOWER(classroom.courseTitle) LIKE LOWER(:search)', {
+        search: `%${search}%`,
+      });
+    }
+
+    const [findAllClassroom, totalItems] = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    const result = findAllClassroom.map((item) => {
+      return {
+        classCode: item.classCode,
+        courseName: item.courseTitle,
+        courseCode: item.courseCode,
+        tutor: item.tutor.name,
+        class: item.classRoom,
+      };
+    });
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+      data: result,
+      meta: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        itemsPerPage: limit,
+      },
+    };
+  }
+
+  async unregisterStudentFromClass(
+    studentId: string,
+    classId: string,
+  ): Promise<string> {
+    const student = await this.studentRepository.findOne({
+      where: { userId: studentId },
+      relations: ['classrooms'],
+    });
+    if (!student) {
+      throw new ServiceException(
+        ResponseCode.USER_NOT_FOUND,
+        'Student not found',
+      );
+    }
+    if (!student.classes.includes(classId)) {
+      throw new ServiceException(
+        ResponseCode.CLASS_NOT_FOUND,
+        'Student not in class',
+      );
+    }
+    student.classes = student.classes.filter((c) => c !== classId);
+    student.classrooms = student.classrooms.filter(
+      (c) => c.classId !== classId,
+    );
+    await this.studentRepository.save(student);
+    return 'Successfully unregistered from class';
+  }
 }

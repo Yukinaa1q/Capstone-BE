@@ -148,4 +148,26 @@ export class TutorService {
     );
     return result;
   }
+
+  async viewRegisteredClassesSimple(userId: string) {
+    const findTutor = await this.tutorRepository.findOne({
+      where: { userId: userId },
+    });
+    const listRegisteredClasses = await this.classRepository.find({
+      where: {
+        classId: In(findTutor.classList),
+      },
+    });
+    const result = [];
+    listRegisteredClasses.forEach((item) =>
+      result.push({
+        classCode: item.classCode,
+        courseName: item.courseTitle,
+        courseCode: item.courseCode,
+        tutor: item.tutor.name,
+        class: item.classRoom,
+      }),
+    );
+    return result;
+  }
 }

@@ -8,7 +8,16 @@ export class ViewAllClassroomDTO {
   classCode: string;
 
   @IsNumber()
-  classStudents: number;
+  classRegisteredStudents: number;
+
+  @IsString()
+  room: string;
+
+  @IsNumber()
+  classStudents: number; // max students
+
+  @IsString()
+  openStatus: string;
 
   @IsString()
   tutorId: string;
