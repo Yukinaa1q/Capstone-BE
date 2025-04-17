@@ -49,7 +49,11 @@ export class TutorController {
     @CurrentUser() student: Tutor,
     @Body() data: UpdateTutorDTO,
   ): Promise<Tutor> {
-    console.log(student);
     return this.tutorService.editTutorInfo(student.userId, data);
+  }
+
+  @Get('/view-registered-classes')
+  async viewRegisteredClasses(@CurrentUser() user: any) {
+    return this.tutorService.viewRegisteredClasses(user.userId);
   }
 }

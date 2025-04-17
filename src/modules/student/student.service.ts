@@ -9,6 +9,7 @@ import { StudentListViewDTO } from './dto/studentListView.dto';
 import { StudentDetailDTO } from './dto/studentDetails.dto';
 import { Classroom } from '@modules/class/entity/class.entity';
 import { ResponseCode, ServiceException } from '@common/error';
+import { addDays, addMonths } from 'date-fns';
 
 @Injectable()
 export class StudentService {
@@ -50,6 +51,18 @@ export class StudentService {
   ): Promise<Student> {
     if (data.password) {
       data.password = await hashPassword(data.password);
+    }
+
+    if (data.email) {
+      const existingTutor = await this.studentRepository.findOne({
+        where: { email: data.email },
+      });
+      if (existingTutor && existingTutor.userId !== userId) {
+        throw new ServiceException(
+          ResponseCode.SAME_EMAIL_ERROR,
+          'This email has been registered',
+        );
+      }
     }
 
     await this.studentRepository.update(userId, data);
@@ -152,5 +165,75 @@ export class StudentService {
     await this.studentRepository.save(student);
 
     return 'Successfully registered ';
+  }
+
+  async viewRegisteredClasses(
+    userId: string,
+    page: number = 1, // Default to page 1
+    limit: number = 10, // Default to 10 items per page
+    search: string = '',
+  ) {
+    const findStudent = await this.studentRepository.findOne({
+      where: { userId: userId },
+    });
+    const classes = findStudent.classes;
+    const query = this.classroomRepository.createQueryBuilder('classroom');
+    if (classes.length > 0) {
+      query.where('classroom.classId IN (:...classes)', {
+        classes,
+      });
+    } else {
+      query.where('1 = 1'); // Always true condition
+    }
+    if (search) {
+      query.andWhere('LOWER(classroom.courseTitle) LIKE LOWER(:search)', {
+        search: `%${search}%`,
+      });
+    }
+
+    const [findAllClassroom, totalItems] = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    const result = findAllClassroom.map((item) => {
+      return {
+        classId: item.classId,
+        classCode: item.classCode,
+        registrationStartDate: new Date(item.startDate).toLocaleDateString(),
+        registrationEndDate: addDays(
+          new Date(item.startDate),
+          15,
+        ).toLocaleDateString(),
+        studyStartDate: addDays(
+          new Date(item.startDate),
+          15,
+        ).toLocaleDateString(),
+        studyEndDate: addMonths(
+          addDays(new Date(item.startDate), 15),
+          item.course.duration,
+        ).toLocaleDateString(),
+        currentStudents: item.currentStudents,
+        maxStudents: item.maxStudents,
+        courseTitle: item.courseTitle,
+        courseCode: item.courseCode,
+        courseId: item.courseId,
+        coursePrice: item.course.coursePrice,
+        courseImage: item.course.courseImage,
+        tutor: item.tutor.name,
+      };
+    });
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+      data: result,
+      meta: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        itemsPerPage: limit,
+      },
+    };
   }
 }

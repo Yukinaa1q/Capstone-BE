@@ -6,7 +6,7 @@ import { Tutor } from './entity/tutor.entity';
 import { Classroom } from '@modules/class/entity/class.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Tutor])],
+  imports: [TypeOrmModule.forFeature([Tutor, Classroom])],
   controllers: [TutorController],
   providers: [TutorService],
   exports: [TutorService],

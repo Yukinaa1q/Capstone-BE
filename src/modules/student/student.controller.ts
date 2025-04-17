@@ -5,7 +5,7 @@ import {
   ApiResponseString,
 } from '@services/openApi';
 import { StudentService } from './student.service';
-import { Body, Get, Param, Post } from '@nestjs/common';
+import { Body, Get, Param, Post, Query } from '@nestjs/common';
 import { CreateStudentDTO } from './dto';
 import { CurrentUser } from '@common/decorator';
 import { UpdateStudentDTO } from './dto/updateStudent.dto';
@@ -60,5 +60,15 @@ export class StudentController {
     @Body() data: ClassRegisterDTO,
   ): Promise<string> {
     return this.studentService.registerForClass(student.userId, data.classId);
+  }
+
+  @Get('/view-registered-class')
+  async viewRegisteredClasses(
+    @CurrentUser() user: any,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('q') q: string,
+  ) {
+    return this.viewRegisteredClasses(user.userId, page, limit, q);
   }
 }

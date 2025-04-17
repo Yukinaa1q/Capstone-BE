@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@google-cloud/local-auth": "^3.0.1",
     "@nestjs/cache-manager": "^2.3.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^4.0.0",
@@ -37,6 +38,7 @@
     "cloudinary": "^2.5.1",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
+    "googleapis": "^148.0.0",
     "helmet": "^8.0.0",
     "multer-storage-cloudinary": "^4.0.0",
     "node-cron": "^3.0.3",
