@@ -24,4 +24,7 @@ export class ViewAllClassroomDTO {
 
   @IsString()
   tutor: string;
+
+  @IsString()
+  courseName: string;
 }

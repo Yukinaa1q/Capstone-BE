@@ -10,6 +10,7 @@ import { Course } from '@modules/course/entity/course.entity';
 import { Room } from './entity/room.entity';
 import { RoomOccupied } from './entity/roomOccupied.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { ReturnClassPaginationDTO } from './dto/returnClass.dto';
 
 @Injectable()
 export class CourseRegistrationP2Service {
@@ -148,7 +149,7 @@ export class CourseRegistrationP2Service {
     page: number = 1,
     limit: number = 10,
     search: string = '',
-  ): Promise<{ data: Classroom[]; meta: PaginationMeta }> {
+  ): Promise<{ data: ReturnClassPaginationDTO[]; meta: PaginationMeta }> {
     const findTutor = await this.studentRepository.findOne({
       where: { userId: userId },
     });
@@ -172,8 +173,28 @@ export class CourseRegistrationP2Service {
       .getManyAndCount();
 
     const totalPages = Math.ceil(totalItems / limit);
+    const result: ReturnClassPaginationDTO[] = [];
+    for (const item of findAllClassroom) {
+      result.push({
+        courseTitle: item.courseTitle,
+        courseCode: item.courseCode,
+        courseId: item.courseId,
+        coursePrice: item.course.coursePrice,
+        courseImage: item.course.courseImage,
+        classId: item.classId,
+        classCode: item.classCode,
+        registrationStartDate: item.startDate,
+        registrationEndDate: addDays(
+          new Date(item.startDate),
+          10,
+        ).toLocaleDateString('en-GB'),
+        tutor: item.tutor.name,
+        currentStudents: item.currentStudents,
+        maxStudents: item.maxStudents,
+      });
+    }
     return {
-      data: findAllClassroom,
+      data: result,
       meta: {
         totalItems,
         totalPages,

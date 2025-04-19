@@ -10,6 +10,7 @@ import { CurrentUser } from '@common/decorator';
 import { Classroom } from '@modules/class/entity/class.entity';
 import { ResponseViewApiP2 } from './dto';
 import { PaginationMeta } from './courseRegistration.service';
+import { ReturnClassPaginationDTO } from './dto/returnClass.dto';
 
 @ApiAuthController('phase2_register')
 export class Phase2RegisterController {
@@ -49,7 +50,7 @@ export class Phase2RegisterController {
     @Query('limit') limit: number,
     @Query('q') q: string,
   ): Promise<{
-    data: Classroom[];
+    data: ReturnClassPaginationDTO[];
     meta: PaginationMeta;
   }> {
     return this.registerP2Service.viewUnregisteredClassesStudent(

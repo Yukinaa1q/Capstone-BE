@@ -94,8 +94,9 @@ export class ClassroomService {
         classRegisteredStudents: classs.currentStudents,
         tutorId: classs.tutor.tutorCode,
         tutor: classs.tutor.name,
-        room: classs.classRoom || 'N/A',
-        openStatus: 'not open',
+        room: classs.room.roomCode || classs.room.onlineRoom,
+        openStatus: classs.status,
+        courseName: classs.courseTitle,
       });
       //temporary solution
     });
