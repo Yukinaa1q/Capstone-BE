@@ -334,6 +334,7 @@ export class CourseRegistrationP2Service {
             student.classes.splice(removeClass, 1);
             const removeStudent = aClass.studentList.indexOf(student.userId);
             aClass.studentList.splice(removeStudent, 1);
+            aClass.currentStudents = aClass.currentStudents - 1;
             await this.studentRepository.save(student);
             await this.classroomRepository.save(aClass);
           }
@@ -349,12 +350,12 @@ export class CourseRegistrationP2Service {
       if (aClass.status !== 'Open') {
         if (
           today >= addDays(new Date(aClass.startDate), 10) &&
-          aClass.studentList.length <= 10
+          aClass.currentStudents <= 10
         ) {
           const deleteClass = await this.deleteClass(aClass.classId);
         } else if (
           today >= addDays(new Date(aClass.startDate), 10) &&
-          aClass.studentList.length >= 10
+          aClass.currentStudents >= 10
         ) {
           aClass.status = 'Registration Time';
           await this.classroomRepository.save(aClass);
