@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { generateCustomID, hashPassword } from '@utils';
 import { Tutor } from './entity/tutor.entity';
 import { CreateTutorDTO } from './dto/createTutor.dto';
-import { UpdateTutorDTO } from './dto/updateTutor.dto';
+import { UpdateTutorDTO, UpdateTutorProfileDTO } from './dto/updateTutor.dto';
 import { TutorListViewDTO } from './dto/tutorListview.dto';
 import { TutorDetailDTO } from './dto/tutorDetails.dto';
 import { ResponseCode, ServiceException } from '@common/error';
@@ -169,5 +169,50 @@ export class TutorService {
       }),
     );
     return result;
+  }
+
+  async updateTutorProfile(
+    tutorId: string,
+    data: UpdateTutorProfileDTO,
+  ): Promise<Tutor> {
+    const student = await this.tutorRepository.findOne({
+      where: { userId: tutorId },
+    });
+    if (!student) {
+      throw new NotFoundException('Student not found');
+    }
+    if (data.email) {
+      const existingStudent = await this.tutorRepository.findOne({
+        where: { email: data.email },
+      });
+      if (existingStudent && existingStudent.userId !== tutorId) {
+        throw new ServiceException(
+          ResponseCode.SAME_EMAIL_ERROR,
+          'This email has been registered',
+        );
+      }
+    }
+    if (data.name) {
+      student.name = data.name;
+    }
+    if (data.dob) {
+      student.DOB = data.dob;
+    }
+    if (data.phoneNumber) {
+      student.phone = data.phoneNumber;
+    }
+    if (data.tutorSSN) {
+      const existingTutor = await this.tutorRepository.findOne({
+        where: { email: data.tutorSSN },
+      });
+      if (existingTutor && existingTutor.userId !== tutorId) {
+        throw new ServiceException(
+          ResponseCode.SAME_EMAIL_ERROR,
+          'This tutorSSN has been registered',
+        );
+      }
+    }
+    await this.tutorRepository.save(student);
+    return this.tutorRepository.findOne({ where: { userId: tutorId } });
   }
 }

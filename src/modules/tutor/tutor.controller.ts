@@ -9,7 +9,7 @@ import { CurrentUser } from '@common/decorator';
 import { TutorService } from './tutor.service';
 import { CreateTutorDTO } from './dto/createTutor.dto';
 import { Tutor } from './entity/tutor.entity';
-import { UpdateTutorDTO } from './dto/updateTutor.dto';
+import { UpdateTutorDTO, UpdateTutorProfileDTO } from './dto/updateTutor.dto';
 import { TutorListViewDTO } from './dto/tutorListview.dto';
 import { TutorDetailDTO } from './dto/tutorDetails.dto';
 
@@ -50,6 +50,15 @@ export class TutorController {
     @Body() data: UpdateTutorDTO,
   ): Promise<Tutor> {
     return this.tutorService.editTutorInfo(student.userId, data);
+  }
+
+  @Post('/update-tutor-profile/"tutorId')
+  @ApiResponseObject(Tutor)
+  async updateTutorProfile(
+    @Param('tutorId') tutorId: string,
+    @Body() data: UpdateTutorProfileDTO,
+  ): Promise<Tutor> {
+    return this.tutorService.updateTutorProfile(tutorId, data);
   }
 
   @Get('/view-registered-classes')
