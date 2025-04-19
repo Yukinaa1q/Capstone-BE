@@ -28,8 +28,8 @@ export class CourseRegistrationP2Service {
     private readonly roomOccupiedRepository: Repository<RoomOccupied>,
   ) {}
 
-  async viewRegisteredClasses(userId: string): Promise<Classroom[]> {
-    let result: Classroom[] = [];
+  async viewRegisteredClasses(userId: string) {
+    let result = [];
     const findUserStudent = await this.studentRepository.findOne({
       where: { userId: userId },
     });
@@ -41,7 +41,31 @@ export class CourseRegistrationP2Service {
         where: { classId: In(findUserStudent.classes) },
       });
       for (const item of findClasses) {
-        result.push(item);
+        result.push({
+          classId: item.classId,
+          classCode: item.classCode,
+          registrationStartDate: new Date(item.startDate).toLocaleDateString(),
+          registrationEndDate: addDays(
+            new Date(item.startDate),
+            10,
+          ).toLocaleDateString(),
+          studyStartDate: addDays(
+            new Date(item.startDate),
+            21,
+          ).toLocaleDateString(),
+          studyEndDate: addMonths(
+            addDays(new Date(item.startDate), 21),
+            item.course.duration,
+          ).toLocaleDateString(),
+          currentStudents: item.currentStudents,
+          maxStudents: item.maxStudents,
+          courseTitle: item.courseTitle,
+          courseCode: item.courseCode,
+          courseId: item.courseId,
+          coursePrice: item.course.coursePrice,
+          courseImage: item.course.courseImage,
+          tutor: item.tutor.name,
+        });
       }
       return result;
     } else if (findUserTutor) {
@@ -49,7 +73,31 @@ export class CourseRegistrationP2Service {
         where: { classId: In(findUserTutor.classList) },
       });
       for (const item of findClasses) {
-        result.push(item);
+        result.push({
+          classId: item.classId,
+          classCode: item.classCode,
+          registrationStartDate: new Date(item.startDate).toLocaleDateString(),
+          registrationEndDate: addDays(
+            new Date(item.startDate),
+            10,
+          ).toLocaleDateString(),
+          studyStartDate: addDays(
+            new Date(item.startDate),
+            21,
+          ).toLocaleDateString(),
+          studyEndDate: addMonths(
+            addDays(new Date(item.startDate), 21),
+            item.course.duration,
+          ).toLocaleDateString(),
+          currentStudents: item.currentStudents,
+          maxStudents: item.maxStudents,
+          courseTitle: item.courseTitle,
+          courseCode: item.courseCode,
+          courseId: item.courseId,
+          coursePrice: item.course.coursePrice,
+          courseImage: item.course.courseImage,
+          tutor: item.tutor.name,
+        });
       }
       return result;
     }
@@ -152,14 +200,14 @@ export class CourseRegistrationP2Service {
         registrationStartDate: new Date(item.startDate).toLocaleDateString(),
         registrationEndDate: addDays(
           new Date(item.startDate),
-          15,
+          10,
         ).toLocaleDateString(),
         studyStartDate: addDays(
           new Date(item.startDate),
-          15,
+          21,
         ).toLocaleDateString(),
         studyEndDate: addMonths(
-          addDays(new Date(item.startDate), 15),
+          addDays(new Date(item.startDate), 21),
           item.course.duration,
         ).toLocaleDateString(),
         currentStudents: item.currentStudents,

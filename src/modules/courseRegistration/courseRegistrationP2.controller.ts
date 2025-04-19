@@ -37,9 +37,7 @@ export class Phase2RegisterController {
 
   @Get('view-registered-classes')
   @ApiResponseArray(Classroom)
-  async viewRegisteredClassesStudent(
-    @CurrentUser() user: any,
-  ): Promise<Classroom[]> {
+  async viewRegisteredClassesStudent(@CurrentUser() user: any) {
     return this.registerP2Service.viewRegisteredClasses(user.userId);
   }
 
