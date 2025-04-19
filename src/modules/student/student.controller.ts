@@ -63,13 +63,13 @@ export class StudentController {
     return this.studentService.registerForClass(student.userId, data.classId);
   }
 
-  @Post('/update-student-profile')
+  @Post('/update-student-profile/:studentId')
   @ApiResponseObject(Student)
   async updateStudentProfile(
-    @CurrentUser() user: any,
+    @Param('studentId') studentId: string,
     @Body() data: UpdateStudentProfileDTO,
   ): Promise<Student> {
-    return this.studentService.updateStudentProfile(user.userId, data);
+    return this.studentService.updateStudentProfile(studentId, data);
   }
 
   @Get('/view-registered-class')
