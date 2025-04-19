@@ -203,7 +203,7 @@ export class TutorService {
     }
     if (data.tutorSSN) {
       const existingTutor = await this.tutorRepository.findOne({
-        where: { email: data.tutorSSN },
+        where: { tutorSSN: data.tutorSSN },
       });
       if (existingTutor && existingTutor.userId !== tutorId) {
         throw new ServiceException(
