@@ -84,6 +84,5 @@ export class ViewClassDetailDTO {
   studyRoom: string;
 
   @IsArray()
-  @IsOptional()
-  studentList?: studentDetail[];
+  studentList: studentDetail[];
 }

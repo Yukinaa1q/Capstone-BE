@@ -139,7 +139,8 @@ export class ClassroomService {
     result.studyRoom = findClass.classRoom;
     result.classStudents = findClass.currentStudents;
     result.classMaxStudents = findClass.maxStudents;
-    findClass.studentList.map(async (student) => {
+    result.studentList = [];
+    for (const student of findClass.studentList) {
       const findStudent = await this.studentRepo.findOne({
         where: { userId: student },
       });
@@ -149,7 +150,7 @@ export class ClassroomService {
         studentCode: findStudent.studentCode,
         avatarLink: findStudent.avatarUrl,
       });
-    });
+    }
     return result;
   }
 
