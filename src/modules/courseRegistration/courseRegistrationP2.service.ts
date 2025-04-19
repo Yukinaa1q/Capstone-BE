@@ -313,6 +313,16 @@ export class CourseRegistrationP2Service {
         return this.studentRepository.save(student);
       }),
     );
+    //xóa trong tutor
+    const findTutor = await this.tutorRepository
+      .createQueryBuilder('tutor')
+      .where(':classId = ANY(tutor.classList', { classId })
+      .getOne();
+
+    findTutor.classList = findTutor.classList.filter(
+      (currentClassId) => currentClassId !== classId,
+    );
+    await this.tutorRepository.save(findTutor);
 
     //xóa tiếp trong course
     const findCourse = await this.courseRepository
