@@ -28,32 +28,31 @@ export class CourseRegistrationP2Service {
     private readonly roomOccupiedRepository: Repository<RoomOccupied>,
   ) {}
 
-  async viewRegisteredClassesStudent(userId: string): Promise<Classroom[]> {
+  async viewRegisteredClasses(userId: string): Promise<Classroom[]> {
     let result: Classroom[] = [];
-    const findUser = await this.studentRepository.findOne({
+    const findUserStudent = await this.studentRepository.findOne({
       where: { userId: userId },
     });
-    const findClasses = await this.classroomRepository.find({
-      where: { classId: In(findUser.classes) },
-    });
-    for (const item of findClasses) {
-      result.push(item);
-    }
-    return result;
-  }
-
-  async viewRegisteredClassesTutor(userId: string): Promise<Classroom[]> {
-    let result: Classroom[] = [];
-    const findUser = await this.tutorRepository.findOne({
+    const findUserTutor = await this.tutorRepository.findOne({
       where: { userId: userId },
     });
-    const findClasses = await this.classroomRepository.find({
-      where: { classId: In(findUser.classList) },
-    });
-    for (const item of findClasses) {
-      result.push(item);
+    if (findUserStudent) {
+      const findClasses = await this.classroomRepository.find({
+        where: { classId: In(findUserStudent.classes) },
+      });
+      for (const item of findClasses) {
+        result.push(item);
+      }
+      return result;
+    } else if (findUserTutor) {
+      const findClasses = await this.classroomRepository.find({
+        where: { classId: In(findUserTutor.classList) },
+      });
+      for (const item of findClasses) {
+        result.push(item);
+      }
+      return result;
     }
-    return result;
   }
 
   async viewUnregisteredClassesTutor(

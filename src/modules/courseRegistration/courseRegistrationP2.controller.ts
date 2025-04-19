@@ -35,20 +35,12 @@ export class Phase2RegisterController {
     return this.registerP2Service.unregisterClassStudent(user.userId, classId);
   }
 
-  @Get('view-registered-classes-student')
+  @Get('view-registered-classes')
   @ApiResponseArray(Classroom)
   async viewRegisteredClassesStudent(
     @CurrentUser() user: any,
   ): Promise<Classroom[]> {
-    return this.registerP2Service.viewRegisteredClassesStudent(user.userId);
-  }
-
-  @Get('view-registered-classes-tutor')
-  @ApiResponseArray(Classroom)
-  async viewRegisteredClassesTutor(
-    @CurrentUser() user: any,
-  ): Promise<Classroom[]> {
-    return this.registerP2Service.viewRegisteredClassesTutor(user.userId);
+    return this.registerP2Service.viewRegisteredClasses(user.userId);
   }
 
   @Get('view-unregistered-classes-student')
