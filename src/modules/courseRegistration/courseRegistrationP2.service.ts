@@ -154,7 +154,10 @@ export class CourseRegistrationP2Service {
       where: { userId: userId },
     });
     let abc = findTutor.classes;
-    const query = this.classroomRepository.createQueryBuilder('classroom');
+    const query = this.classroomRepository
+      .createQueryBuilder('classroom')
+      .leftJoinAndSelect('classroom.course', 'course')
+      .leftJoinAndSelect('classroom.tutor', 'tutor');
     if (abc.length > 0) {
       query.where('classroom.classId NOT IN (:...abc)', {
         abc,
@@ -183,7 +186,9 @@ export class CourseRegistrationP2Service {
         courseImage: item.course.courseImage,
         classId: item.classId,
         classCode: item.classCode,
-        registrationStartDate: item.startDate,
+        registrationStartDate: new Date(item.startDate).toLocaleDateString(
+          'en-GB',
+        ),
         registrationEndDate: addDays(
           new Date(item.startDate),
           10,
