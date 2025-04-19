@@ -266,6 +266,7 @@ export class CourseRegistrationP2Service {
         (student) => student.userId !== userId,
       );
     }
+    findClass.currentStudents = findClass.currentStudents - 1;
     await this.studentRepository.save(findUser);
     await this.classroomRepository.save(findClass);
     return 'Student successfully unregistered from the class';
