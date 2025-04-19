@@ -277,21 +277,11 @@ export class CourseRegistrationP2Service {
     });
 
     findUser.classes = findUser.classes.filter(
-      (classId) => classId !== classId,
+      (curenntClassId) => curenntClassId !== classId,
     );
     findClass.studentList = findClass.studentList.filter(
       (student) => student !== userId,
     );
-    if (findUser.classrooms) {
-      findUser.classrooms = findUser.classrooms.filter(
-        (classe) => classe.classId !== classId,
-      );
-    }
-    if (findClass.students) {
-      findClass.students = findClass.students.filter(
-        (student) => student.userId !== userId,
-      );
-    }
     findClass.currentStudents = findClass.currentStudents - 1;
     await this.studentRepository.save(findUser);
     await this.classroomRepository.save(findClass);
@@ -316,7 +306,7 @@ export class CourseRegistrationP2Service {
     //xóa trong tutor
     const findTutor = await this.tutorRepository
       .createQueryBuilder('tutor')
-      .where(':classId = ANY(tutor.classList', { classId })
+      .where(':classId = ANY(tutor.classList)', { classId })
       .getOne();
 
     findTutor.classList = findTutor.classList.filter(
