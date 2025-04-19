@@ -300,30 +300,37 @@ export class CourseRegistrationP2Service {
 
   async deleteClass(classId: string): Promise<string> {
     //xóa trong student trước
-    const findStudent = await this.studentRepository.findBy({
-      classes: In([classId]),
-    });
+    const findStudent = await this.studentRepository
+      .createQueryBuilder('student')
+      .where(':classId = ANY(student.classes)', { classId })
+      .getMany();
 
-    findStudent.map(async (student) => {
-      student.classes = student.classes.filter(
-        (classIds) => classIds !== classId,
-      );
-      await this.studentRepository.save(student);
-    });
+    await Promise.all(
+      findStudent.map(async (student) => {
+        student.classes = student.classes.filter(
+          (currentClassId) => currentClassId !== classId,
+        );
+        return this.studentRepository.save(student);
+      }),
+    );
 
     //xóa tiếp trong course
-    const findCourse = await this.courseRepository.findOneBy({
-      classes: In([classId]),
-    });
-    findCourse.classes = findCourse.classes.filter(
-      (classIds) => classIds != classId,
-    );
-    await this.courseRepository.save(findCourse);
+    const findCourse = await this.courseRepository
+      .createQueryBuilder('course')
+      .where(':classId = ANY(course.classes)', { classId })
+      .getOne();
+    if (findCourse) {
+      findCourse.classes = findCourse.classes.filter(
+        (currentClassId) => currentClassId !== classId,
+      );
+      await this.courseRepository.save(findCourse);
+    }
 
     //xóa trong room
-    const findRoom = await this.roomRepository.findOneBy({
-      classesIdList: In([classId]),
-    });
+    const findRoom = await this.roomRepository
+      .createQueryBuilder('room')
+      .where(':classId = ANY(room.classesIdList)', { classId })
+      .getOne();
     //xóa trong roomOccupied
     const findRoomOc = await this.roomOccupiedRepository.findOneBy({
       roomId: findRoom.roomId,
