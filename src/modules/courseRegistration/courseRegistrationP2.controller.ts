@@ -5,7 +5,7 @@ import {
   ApiResponseString,
 } from '@services/openApi';
 import { CourseRegistrationP2Service } from './courseRegistrationP2.service';
-import { Get, Param, Query } from '@nestjs/common';
+import { Delete, Get, Param, Query } from '@nestjs/common';
 import { CurrentUser } from '@common/decorator';
 import { Classroom } from '@modules/class/entity/class.entity';
 import { ResponseViewApiP2 } from './dto';
@@ -95,5 +95,11 @@ export class Phase2RegisterController {
     @CurrentUser() user: any,
   ): Promise<Classroom[]> {
     return this.registerP2Service.viewRandomUnregisteredClasses(user.userId);
+  }
+
+  @Delete('delete-class/:classId')
+  @ApiResponseString()
+  async deleteClass(@Param('classId') classId: string): Promise<string> {
+    return this.registerP2Service.deleteClass(classId);
   }
 }

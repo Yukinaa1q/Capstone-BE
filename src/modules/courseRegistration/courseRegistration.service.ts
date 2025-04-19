@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { StudentPreReg } from './entity/studentPreReg.entity';
 import { In, Like, MoreThan, Not, Repository } from 'typeorm';
-import { addMonths } from 'date-fns';
+import { addDays, addMonths } from 'date-fns';
 import {
   CourseRegP1DTO,
   CourseUnRegP1DTO,
@@ -21,6 +21,7 @@ import { Room } from './entity/room.entity';
 import { Tutor } from '@modules/tutor/entity/tutor.entity';
 import { generateCustomID } from '@utils';
 import { RoomOccupied } from './entity/roomOccupied.entity';
+import { GoogleMeetService } from '@services/google/google.service';
 
 export class PaginationMeta {
   totalItems: number;
@@ -47,6 +48,7 @@ export class CourseRegistrationService {
     private readonly tutorRepository: Repository<Tutor>,
     @InjectRepository(RoomOccupied)
     private readonly roomOccupiedRepository: Repository<RoomOccupied>,
+    private readonly googleService: GoogleMeetService,
   ) {}
 
   getRandomElements<T>(array: T[], count: number): T[] {
@@ -405,17 +407,12 @@ export class CourseRegistrationService {
           });
         }
       } else if (item.isOnline) {
-        roomie = await this.roomRepository
-          .createQueryBuilder('room')
-          .leftJoinAndSelect(
-            'room.occupancies',
-            'room_occupied',
-            'room_occupied.studyWeek = :week AND room_occupied.studyShift = :shift',
-            { week: item.studyWeek, shift: item.studyShift },
-          )
-          .where('room_occupied.id IS NULL') // Rooms with NO booking at this timeslot
-          .getOne();
-        //roomie = this.roomRepository.create() // integrate GCP (later )
+        const url = await this.googleService.createMeetLink();
+        roomie = this.roomRepository.create({
+          roomCode: 'Online room',
+          onlineRoom: url,
+        });
+        await this.roomRepository.save(roomie);
       }
 
       if (!roomie) {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateStudentDTO } from './dto';
@@ -10,6 +10,7 @@ import { StudentDetailDTO } from './dto/studentDetails.dto';
 import { Classroom } from '@modules/class/entity/class.entity';
 import { ResponseCode, ServiceException } from '@common/error';
 import { addDays, addMonths } from 'date-fns';
+import { UpdateStudentProfileDTO } from './dto/updateStudentProfile.dto';
 
 @Injectable()
 export class StudentService {
@@ -289,31 +290,76 @@ export class StudentService {
     };
   }
 
-  async unregisterStudentFromClass(
+  // async unregisterStudentFromClass(
+  //   studentId: string,
+  //   classId: string,
+  // ): Promise<string> {
+  //   const student = await this.studentRepository.findOne({
+  //     where: { userId: studentId },
+  //     relations: ['classrooms'],
+  //   });
+  //   if (!student) {
+  //     throw new ServiceException(
+  //       ResponseCode.USER_NOT_FOUND,
+  //       'Student not found',
+  //     );
+  //   }
+  //   if (!student.classes.includes(classId)) {
+  //     throw new ServiceException(
+  //       ResponseCode.CLASS_NOT_FOUND,
+  //       'Student not in class',
+  //     );
+  //   }
+  //   student.classes = student.classes.filter((c) => c !== classId);
+  //   student.classrooms = student.classrooms.filter(
+  //     (c) => c.classId !== classId,
+  //   );
+  //   await this.studentRepository.save(student);
+  //   return 'Successfully unregistered from class';
+  // }
+
+  async updateStudentProfile(
     studentId: string,
-    classId: string,
-  ): Promise<string> {
+    data: UpdateStudentProfileDTO,
+  ): Promise<Student> {
     const student = await this.studentRepository.findOne({
       where: { userId: studentId },
-      relations: ['classrooms'],
     });
     if (!student) {
-      throw new ServiceException(
-        ResponseCode.USER_NOT_FOUND,
-        'Student not found',
-      );
+      throw new NotFoundException('Student not found');
     }
-    if (!student.classes.includes(classId)) {
-      throw new ServiceException(
-        ResponseCode.CLASS_NOT_FOUND,
-        'Student not in class',
-      );
+    if (data.email) {
+      const existingStudent = await this.studentRepository.findOne({
+        where: { email: data.email },
+      });
+      if (existingStudent && existingStudent.userId !== studentId) {
+        throw new ServiceException(
+          ResponseCode.SAME_EMAIL_ERROR,
+          'This email has been registered',
+        );
+      }
     }
-    student.classes = student.classes.filter((c) => c !== classId);
-    student.classrooms = student.classrooms.filter(
-      (c) => c.classId !== classId,
-    );
+    if (data.name) {
+      student.name = data.name;
+    }
+    if (data.dob) {
+      student.DOB = data.dob;
+    }
+    if (data.phoneNumber) {
+      student.phone = data.phoneNumber;
+    }
     await this.studentRepository.save(student);
-    return 'Successfully unregistered from class';
+    return this.studentRepository.findOne({ where: { userId: studentId } });
+  }
+
+  async classPayment(userId: string): Promise<string> {
+    const findStudent = await this.studentRepository.findOne({
+      where: { userId },
+    });
+
+    findStudent.paidClass.concat(findStudent.classes);
+    findStudent.classes = [];
+    await this.studentRepository.save(findStudent);
+    return 'You have successfully paid the fee';
   }
 }

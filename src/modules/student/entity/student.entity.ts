@@ -24,6 +24,11 @@ export class Student extends User {
   @IsArray()
   classes: string[];
 
+  @Column({ default: [], type: 'text', array: true })
+  @ApiProperty()
+  @IsArray()
+  paidClass: string[];
+
   constructor(partial: Partial<User>) {
     super();
     Object.assign(this, partial);

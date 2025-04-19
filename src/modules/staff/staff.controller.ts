@@ -12,8 +12,6 @@ import { CurrentUser } from '@common/decorator';
 import { UpdateStaffDTO } from './dto/updateStaff.dto';
 import { QualifiedSubject, Tutor } from '@modules/tutor/entity/tutor.entity';
 import { StaffListViewDTO } from './dto/staffListView.dto';
-import { Student } from '@modules/student/entity/student.entity';
-import { UpdateStudentProfileDTO } from '@modules/student/dto/updateStudentProfile.dto';
 
 @ApiAuthController('staff')
 export class StaffController {
@@ -92,14 +90,5 @@ export class StaffController {
     @Param('tutorId') tutorId: string,
   ): Promise<QualifiedSubject[]> {
     return this.staffService.deleteQualification(data, tutorId);
-  }
-
-  @Put('/update-student-profile/:studentId')
-  @ApiResponseObject(Student)
-  async updateStudentProfile(
-    @Param('studentId') studentId: string,
-    @Body() data: UpdateStudentProfileDTO,
-  ): Promise<Student> {
-    return this.staffService.updateStudentProfile(studentId, data);
   }
 }

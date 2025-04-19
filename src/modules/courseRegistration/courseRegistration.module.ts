@@ -14,6 +14,7 @@ import { AllocateClassService } from './allocateClass.service';
 import { CourseRegistrationP2Service } from './courseRegistrationP2.service';
 import { Phase2RegisterController } from './courseRegistrationP2.controller';
 import { RoomOccupied } from './entity/roomOccupied.entity';
+import { GoogleModule } from '@services/google/google.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { RoomOccupied } from './entity/roomOccupied.entity';
       RoomOccupied,
     ]),
     CourseModule,
+    GoogleModule,
   ],
   controllers: [Phase1RegisterController, Phase2RegisterController],
   providers: [

@@ -139,13 +139,16 @@ export class ClassroomService {
     result.studyRoom = findClass.classRoom;
     result.classStudents = findClass.currentStudents;
     result.classMaxStudents = findClass.maxStudents;
-    result.studentList = findClass.students.map((student) => {
-      return {
-        studentName: student.name,
-        studentId: student.userId,
-        studentCode: student.studentCode,
-        avatarLink: student.avatarUrl,
-      };
+    findClass.studentList.map(async (student) => {
+      const findStudent = await this.studentRepo.findOne({
+        where: { userId: student },
+      });
+      result.studentList.push({
+        studentName: findStudent.name,
+        studentId: findStudent.userId,
+        studentCode: findStudent.studentCode,
+        avatarLink: findStudent.avatarUrl,
+      });
     });
     return result;
   }

@@ -13,6 +13,7 @@ import { Student } from './entity/student.entity';
 import { StudentListViewDTO } from './dto/studentListView.dto';
 import { StudentDetailDTO } from './dto/studentDetails.dto';
 import { ClassRegisterDTO } from './dto/classRegister.dto';
+import { UpdateStudentProfileDTO } from './dto/updateStudentProfile.dto';
 
 @ApiAuthController('student')
 export class StudentController {
@@ -62,6 +63,15 @@ export class StudentController {
     return this.studentService.registerForClass(student.userId, data.classId);
   }
 
+  @Post('/update-student-profile/:studentId')
+  @ApiResponseObject(Student)
+  async updateStudentProfile(
+    @Param('studentId') studentId: string,
+    @Body() data: UpdateStudentProfileDTO,
+  ): Promise<Student> {
+    return this.studentService.updateStudentProfile(studentId, data);
+  }
+
   @Get('/view-registered-class')
   async viewRegisteredClasses(
     @CurrentUser() user: any,
@@ -72,15 +82,15 @@ export class StudentController {
     return this.viewRegisteredClasses(user.userId, page, limit, q);
   }
 
-  @Delete('/unregister-class/:classId')
-  @ApiResponseObject(String)
-  async unregisterStudentFromClass(
-    @CurrentUser() student: any,
-    @Param('classId') classId: string,
-  ): Promise<string> {
-    return this.studentService.unregisterStudentFromClass(
-      student.userId,
-      classId,
-    );
-  }
+  // @Delete('/unregister-class/:classId')
+  // @ApiResponseObject(String)
+  // async unregisterStudentFromClass(
+  //   @CurrentUser() student: any,
+  //   @Param('classId') classId: string,
+  // ): Promise<string> {
+  //   return this.studentService.unregisterStudentFromClass(
+  //     student.userId,
+  //     classId,
+  //   );
+  // }
 }

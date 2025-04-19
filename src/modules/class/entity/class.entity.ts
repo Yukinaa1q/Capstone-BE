@@ -126,6 +126,11 @@ export class Classroom {
   @IsArray()
   studentList: string[];
 
+  @Column({ default: 'pending', type: 'text' })
+  @ApiProperty()
+  @IsString()
+  status: string;
+
   @Column({ nullable: true })
   @ApiPropertyOptional()
   @IsString()

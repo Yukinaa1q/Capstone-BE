@@ -6,6 +6,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Not, Repository } from 'typeorm';
 import { PaginationMeta } from './courseRegistration.service';
 import { addDays, addMonths } from 'date-fns';
+import { Course } from '@modules/course/entity/course.entity';
+import { Room } from './entity/room.entity';
+import { RoomOccupied } from './entity/roomOccupied.entity';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class CourseRegistrationP2Service {
@@ -16,6 +20,12 @@ export class CourseRegistrationP2Service {
     private readonly tutorRepository: Repository<Tutor>,
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>,
+    @InjectRepository(Course)
+    private readonly courseRepository: Repository<Course>,
+    @InjectRepository(Room)
+    private readonly roomRepository: Repository<Room>,
+    @InjectRepository(RoomOccupied)
+    private readonly roomOccupiedRepository: Repository<RoomOccupied>,
   ) {}
 
   async viewRegisteredClassesStudent(userId: string): Promise<Classroom[]> {
@@ -186,14 +196,14 @@ export class CourseRegistrationP2Service {
     userId: string,
     classId: string,
   ): Promise<string> {
-    const findUser = await this.tutorRepository.findOne({
+    const findUser = await this.studentRepository.findOne({
       where: { userId: userId },
     });
     const findClass = await this.classroomRepository.findOne({
       where: { classId: classId },
     });
 
-    findUser.classList = findUser.classList.filter(
+    findUser.classes = findUser.classes.filter(
       (classId) => classId !== classId,
     );
     findClass.studentList = findClass.studentList.filter(
@@ -212,5 +222,97 @@ export class CourseRegistrationP2Service {
     await this.studentRepository.save(findUser);
     await this.classroomRepository.save(findClass);
     return 'Student successfully unregistered from the class';
+  }
+
+  async deleteClass(classId: string): Promise<string> {
+    //xóa trong student trước
+    const findStudent = await this.studentRepository.find({
+      where: { classes: In([classId]) },
+    });
+
+    findStudent.map(async (student) => {
+      student.classes = student.classes.filter(
+        (classIds) => classIds !== classId,
+      );
+      await this.studentRepository.save(student);
+    });
+
+    //xóa tiếp trong course
+    const findCourse = await this.courseRepository.findOne({
+      where: { classes: In([classId]) },
+    });
+    findCourse.classes = findCourse.classes.filter(
+      (classIds) => classIds != classId,
+    );
+    await this.courseRepository.save(findCourse);
+
+    //xóa trong room
+    const findRoom = await this.roomRepository.findOne({
+      where: { classesIdList: In([classId]) },
+    });
+    //xóa trong roomOccupied
+    const findRoomOc = await this.roomOccupiedRepository.findOne({
+      where: { roomId: findRoom.roomId },
+    });
+    findRoom.classesIdList = findRoom.classesIdList.filter(
+      (classs) => classs !== classId,
+    );
+    await this.roomOccupiedRepository.delete(findRoomOc.id);
+    await this.roomRepository.save(findRoom);
+    await this.classroomRepository.delete(classId);
+
+    return 'The class is successfully deleted';
+  }
+
+  @Cron(CronExpression.EVERY_12_HOURS)
+  async runCron() {
+    await this.checkClassStatus();
+    await this.checkPayment();
+  }
+
+  async checkPayment() {
+    const today = new Date();
+    const allClasses = await this.classroomRepository.find();
+    for (const aClass of allClasses) {
+      if (
+        aClass.status === 'Open' &&
+        today >= addDays(new Date(aClass.startDate), 20)
+      ) {
+        const findStudentInClass = await this.studentRepository.find({
+          where: { classes: In([aClass.classId]) },
+        });
+        for (const student of findStudentInClass) {
+          if (!student.paidClass.includes(aClass.classId)) {
+            const removeClass = student.classes.indexOf(aClass.classId);
+            student.classes.splice(removeClass, 1);
+            const removeStudent = aClass.studentList.indexOf(student.userId);
+            aClass.studentList.splice(removeStudent, 1);
+            await this.studentRepository.save(student);
+            await this.classroomRepository.save(aClass);
+          }
+        }
+      }
+    }
+  }
+
+  async checkClassStatus() {
+    const today = new Date();
+    const allClasses = await this.classroomRepository.find();
+    for (const aClass of allClasses) {
+      if (aClass.status !== 'Open') {
+        if (
+          today >= addDays(new Date(aClass.startDate), 10) &&
+          aClass.studentList.length <= 10
+        ) {
+          const deleteClass = await this.deleteClass(aClass.classId);
+        } else if (
+          today >= addDays(new Date(aClass.startDate), 10) &&
+          aClass.studentList.length >= 10
+        ) {
+          aClass.status = 'Registration Time';
+          await this.classroomRepository.save(aClass);
+        }
+      }
+    }
   }
 }
