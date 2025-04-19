@@ -338,6 +338,7 @@ export class StudentService {
           'This email has been registered',
         );
       }
+      student.email = data.email;
     }
     if (data.name) {
       student.name = data.name;

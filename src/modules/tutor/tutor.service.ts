@@ -191,6 +191,7 @@ export class TutorService {
           'This email has been registered',
         );
       }
+      student.email = data.email;
     }
     if (data.name) {
       student.name = data.name;
@@ -211,6 +212,7 @@ export class TutorService {
           'This tutorSSN has been registered',
         );
       }
+      student.tutorSSN = data.tutorSSN;
     }
     await this.tutorRepository.save(student);
     return this.tutorRepository.findOne({ where: { userId: tutorId } });

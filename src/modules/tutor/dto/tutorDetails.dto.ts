@@ -38,13 +38,7 @@ export class TutorDetailDTO {
 
   @ApiProperty()
   @IsString()
-  @IsOptional()
   ssid: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  address: string;
 
   @ApiProperty()
   @IsString()
