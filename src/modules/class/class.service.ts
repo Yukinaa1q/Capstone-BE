@@ -121,12 +121,12 @@ export class ClassroomService {
     ).toLocaleDateString();
     result.studyStartDate = addDays(
       new Date(findClass.startDate),
-      21,
-    ).toLocaleDateString();
+      11,
+    ).toLocaleDateString('en-GB');
     result.studyEndDate = addMonths(
-      addDays(new Date(findClass.startDate), 21),
+      addDays(new Date(findClass.startDate), 11),
       findClass.course.duration,
-    ).toLocaleDateString();
+    ).toLocaleDateString('en-GB');
     result.tutor = findClass.tutor.name;
     result.tutorId = findClass.tutor.tutorCode;
     result.courseDescription = findClass.course.courseDescription;

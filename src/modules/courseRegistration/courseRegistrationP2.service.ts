@@ -52,10 +52,10 @@ export class CourseRegistrationP2Service {
           ).toLocaleDateString(),
           studyStartDate: addDays(
             new Date(item.startDate),
-            21,
+            11,
           ).toLocaleDateString(),
           studyEndDate: addMonths(
-            addDays(new Date(item.startDate), 21),
+            addDays(new Date(item.startDate), 11),
             item.course.duration,
           ).toLocaleDateString(),
           currentStudents: item.currentStudents,
@@ -84,10 +84,10 @@ export class CourseRegistrationP2Service {
           ).toLocaleDateString(),
           studyStartDate: addDays(
             new Date(item.startDate),
-            21,
+            11,
           ).toLocaleDateString(),
           studyEndDate: addMonths(
-            addDays(new Date(item.startDate), 21),
+            addDays(new Date(item.startDate), 11),
             item.course.duration,
           ).toLocaleDateString(),
           currentStudents: item.currentStudents,
@@ -230,10 +230,10 @@ export class CourseRegistrationP2Service {
         ).toLocaleDateString(),
         studyStartDate: addDays(
           new Date(item.startDate),
-          21,
+          11,
         ).toLocaleDateString(),
         studyEndDate: addMonths(
-          addDays(new Date(item.startDate), 21),
+          addDays(new Date(item.startDate), 11),
           item.course.duration,
         ).toLocaleDateString(),
         currentStudents: item.currentStudents,
