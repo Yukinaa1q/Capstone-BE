@@ -117,14 +117,14 @@ export class ClassroomService {
     ).toLocaleDateString();
     result.registrationEndDate = addDays(
       new Date(findClass.startDate),
-      15,
+      10,
     ).toLocaleDateString();
     result.studyStartDate = addDays(
       new Date(findClass.startDate),
-      15,
+      21,
     ).toLocaleDateString();
     result.studyEndDate = addMonths(
-      addDays(new Date(findClass.startDate), 15),
+      addDays(new Date(findClass.startDate), 21),
       findClass.course.duration,
     ).toLocaleDateString();
     result.tutor = findClass.tutor.name;
