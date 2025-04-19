@@ -300,8 +300,8 @@ export class CourseRegistrationP2Service {
 
   async deleteClass(classId: string): Promise<string> {
     //xóa trong student trước
-    const findStudent = await this.studentRepository.find({
-      where: { classes: In([classId]) },
+    const findStudent = await this.studentRepository.findBy({
+      classes: In([classId]),
     });
 
     findStudent.map(async (student) => {
@@ -312,8 +312,8 @@ export class CourseRegistrationP2Service {
     });
 
     //xóa tiếp trong course
-    const findCourse = await this.courseRepository.findOne({
-      where: { classes: In([classId]) },
+    const findCourse = await this.courseRepository.findOneBy({
+      classes: In([classId]),
     });
     findCourse.classes = findCourse.classes.filter(
       (classIds) => classIds != classId,
@@ -321,12 +321,12 @@ export class CourseRegistrationP2Service {
     await this.courseRepository.save(findCourse);
 
     //xóa trong room
-    const findRoom = await this.roomRepository.findOne({
-      where: { classesIdList: In([classId]) },
+    const findRoom = await this.roomRepository.findOneBy({
+      classesIdList: In([classId]),
     });
     //xóa trong roomOccupied
-    const findRoomOc = await this.roomOccupiedRepository.findOne({
-      where: { roomId: findRoom.roomId },
+    const findRoomOc = await this.roomOccupiedRepository.findOneBy({
+      roomId: findRoom.roomId,
     });
     findRoom.classesIdList = findRoom.classesIdList.filter(
       (classs) => classs !== classId,
