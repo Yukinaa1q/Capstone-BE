@@ -52,7 +52,7 @@ export class TutorController {
     return this.tutorService.editTutorInfo(student.userId, data);
   }
 
-  @Post('/update-tutor-profile/"tutorId')
+  @Post('/update-tutor-profile/:tutorId')
   @ApiResponseObject(Tutor)
   async updateTutorProfile(
     @Param('tutorId') tutorId: string,
