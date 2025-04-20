@@ -257,6 +257,7 @@ export class StudentService {
         tutor: item.tutor.name,
         class: item.classRoom,
         courseImg: item.course.courseImage,
+        classUrl: item.room.onlineRoom || 'None',
       }),
     );
     return result;
