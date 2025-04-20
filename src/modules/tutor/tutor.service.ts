@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { generateCustomID, hashPassword } from '@utils';
 import { Tutor } from './entity/tutor.entity';
 import { CreateTutorDTO } from './dto/createTutor.dto';
@@ -156,7 +156,7 @@ export class TutorService {
     const listRegisteredClasses = await this.classRepository.find({
       where: {
         classId: In(findTutor.classList),
-        status: 'OPEN',
+        status: Not(In(['pending'])),
       },
     });
     const result = [];
