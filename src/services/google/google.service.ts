@@ -1,91 +1,63 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { google, calendar_v3 } from 'googleapis';
-import { JWT } from 'google-auth-library';
+import { GoogleAuth, JWT } from 'google-auth-library';
 import { GOOGLE_PRIVATE_KEY, GOOGLE_CLIENT_EMAIL } from '@environment';
 import { readFileSync } from 'fs';
 
 @Injectable()
 export class GoogleMeetService {
-  private calendar: calendar_v3.Calendar;
-  private logger = new Logger(GoogleMeetService.name);
+  private meet: any;
 
   constructor() {
     this.initializeGoogleClient();
   }
 
-  private initializeGoogleClient() {
+  private async initializeGoogleClient() {
     const keyFile = JSON.parse(
       readFileSync('src/credential/google-credential.json', 'utf8'),
     );
     try {
       // Use service account credentials for authentication
-      const auth = new JWT({
-        email: GOOGLE_CLIENT_EMAIL,
-        key: keyFile.private_key,
-        scopes: ['https://www.googleapis.com/auth/calendar'],
+      const auth = new GoogleAuth({
+        keyFile: keyFile.private_key,
+        scopes: ['https://www.googleapis.com/auth/meetings.space.created'],
       });
 
-      this.calendar = google.calendar({ version: 'v3', auth });
+      const authClient = (await auth.getClient()) as JWT;
+
+      // Initialize Meet client with proper typing workaround
+      this.meet = google.meet({
+        version: 'v2',
+        auth: authClient,
+      });
     } catch (error) {
-      this.logger.error('Failed to initialize Google client', error);
       throw error;
     }
   }
 
-  async createMeetLink(): Promise<string> {
+  async createMeetLink() {
     try {
-      const startTime = new Date();
-      const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
-
-      // First create a basic event
-      const event = {
-        summary: `Meet - ${new Date().toISOString()}`,
-        start: {
-          dateTime: startTime.toISOString(),
-          timeZone: 'UTC',
-        },
-        end: {
-          dateTime: endTime.toISOString(),
-          timeZone: 'UTC',
-        },
-      };
-
-      // Create the event first
-      const createdEvent = await this.calendar.events.insert({
-        calendarId: 'primary',
-        requestBody: event,
-      });
-
-      if (!createdEvent.data.id) {
-        throw new Error('Failed to create event');
-      }
-
-      // Then update it with conference data
-      const updatedEvent = await this.calendar.events.patch({
-        calendarId: 'primary',
-        eventId: createdEvent.data.id,
-        conferenceDataVersion: 1,
+      const response = await this.meet.spaces.create({
         requestBody: {
-          conferenceData: {
-            createRequest: {
-              requestId: `meet-${Date.now()}`,
-              conferenceSolutionKey: { type: 'hangoutsMeet' },
-            },
+          config: {
+            accessType: 'OPEN',
+            entryPointAccess: 'ALL',
           },
         },
       });
 
-      if (!updatedEvent.data.hangoutLink) {
-        throw new Error('Failed to add conference data to event');
+      if (!response.data.meetingUri || !response.data.meetingCode) {
+        throw new Error('Invalid response from Google Meet API');
       }
 
-      return updatedEvent.data.hangoutLink;
+      return {
+        meetingUri: response.data.meetingUri,
+        meetingCode: response.data.meetingCode,
+        meetingUrl: `https://meet.google.com/${response.data.meetingCode}`,
+      };
     } catch (error) {
-      this.logger.error(
-        `Failed to create Google Meet link: ${error.message}`,
-        error.stack,
-      );
-      throw error;
+      console.error('Google Meet API Error:', error);
+      throw new Error(`Failed to create meeting: ${error.message}`);
     }
   }
 }
