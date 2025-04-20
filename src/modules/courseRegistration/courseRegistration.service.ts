@@ -414,7 +414,7 @@ export class CourseRegistrationService {
         const url = await this.googleService.createMeetLink();
         roomie = this.roomRepository.create({
           roomCode: 'Online room',
-          onlineRoom: url,
+          onlineRoom: url.meetingUrl,
         });
         await this.roomRepository.save(roomie);
       }
