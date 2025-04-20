@@ -417,7 +417,7 @@ export class CourseRegistrationService {
         );
         roomie = this.roomRepository.create({
           roomCode: 'Online room',
-          onlineRoom: url.data.meetingUrl,
+          onlineRoom: url.data.hostRoomUrl,
           roomAddress: url.data.meetingId,
           occupied: true,
           classesIdList: [],

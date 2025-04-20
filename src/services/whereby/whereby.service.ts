@@ -17,7 +17,7 @@ export class WherebyService {
         'https://api.whereby.dev/v1/meetings',
         {
           roomNamePrefix: meetingName.toLowerCase().replace(/\s+/g, '-'),
-          endDate: addMonths(new Date(), duration).toISOString(), // 24 hours from now
+          endDate: addMonths(new Date(), duration).toISOString(), 
           isLocked: false,
           roomMode: 'group',
           roomNamePattern: 'uuid',
