@@ -243,10 +243,10 @@ export class StudentService {
       where: { userId: userId },
     });
     const listRegisteredClasses = await this.classroomRepository.find({
-      where: {
-        classId: In(findStudent.classes),
-        status: Not(In(['pending'])),
-      },
+      where: [
+        { classId: In(findStudent.paidClass) },
+        { status: Not(In(['pending'])) },
+      ],
     });
     const result = [];
     listRegisteredClasses.forEach((item) =>

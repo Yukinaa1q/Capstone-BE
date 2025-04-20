@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { StudentPreReg } from './entity/studentPreReg.entity';
-import { In, Like, MoreThan, Not, Repository } from 'typeorm';
+import { In, IsNull, Like, MoreThan, Not, Repository } from 'typeorm';
 import { addDays, addMonths } from 'date-fns';
 import {
   CourseRegP1DTO,
@@ -401,6 +401,7 @@ export class CourseRegistrationService {
         roomie = await this.roomRepository.findOne({
           where: {
             roomId: Not(In(occupiedRooms.map((occ) => occ.roomId))),
+            onlineRoom: IsNull(),
           },
         });
 
