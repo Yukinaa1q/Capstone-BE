@@ -331,6 +331,7 @@ export class CourseRegistrationP2Service {
       .createQueryBuilder('room')
       .where(':classId = ANY(room.classesIdList)', { classId })
       .getOne();
+
     //xóa trong roomOccupied
     const findRoomOc = await this.roomOccupiedRepository.findOneBy({
       roomId: findRoom.roomId,
@@ -338,10 +339,13 @@ export class CourseRegistrationP2Service {
     findRoom.classesIdList = findRoom.classesIdList.filter(
       (classs) => classs !== classId,
     );
+
     await this.roomOccupiedRepository.delete(findRoomOc.id);
     await this.roomRepository.save(findRoom);
     await this.classroomRepository.delete(classId);
-
+    if (findRoom.onlineRoom) {
+      await this.roomRepository.delete(findRoom.roomId);
+    }
     return 'The class is successfully deleted';
   }
 
