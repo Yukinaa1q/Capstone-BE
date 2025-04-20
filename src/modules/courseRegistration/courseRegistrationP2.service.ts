@@ -11,6 +11,7 @@ import { Room } from './entity/room.entity';
 import { RoomOccupied } from './entity/roomOccupied.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ReturnClassPaginationDTO } from './dto/returnClass.dto';
+import { WherebyService } from '@services/whereby/whereby.service';
 
 @Injectable()
 export class CourseRegistrationP2Service {
@@ -27,6 +28,7 @@ export class CourseRegistrationP2Service {
     private readonly roomRepository: Repository<Room>,
     @InjectRepository(RoomOccupied)
     private readonly roomOccupiedRepository: Repository<RoomOccupied>,
+    private readonly whereByService: WherebyService,
   ) {}
 
   async viewRegisteredClasses(userId: string) {
@@ -344,6 +346,9 @@ export class CourseRegistrationP2Service {
     await this.roomRepository.save(findRoom);
     await this.classroomRepository.delete(classId);
     if (findRoom.onlineRoom) {
+      const check = await this.whereByService.deleteMeeting(
+        findRoom.roomAddress,
+      );
       await this.roomRepository.delete(findRoom.roomId);
     }
     return 'The class is successfully deleted';
