@@ -156,6 +156,7 @@ export class TutorService {
     const listRegisteredClasses = await this.classRepository.find({
       where: {
         classId: In(findTutor.classList),
+        status: 'OPEN',
       },
     });
     const result = [];

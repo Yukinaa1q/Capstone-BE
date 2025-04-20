@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateStudentDTO } from './dto';
 import { generateCustomID, hashPassword } from '@utils';
 import { UpdateStudentDTO } from './dto/updateStudent.dto';
@@ -238,56 +238,27 @@ export class StudentService {
     };
   }
 
-  async viewRegisteredClassesSimple(
-    userId: string,
-    page: number = 1, // Default to page 1
-    limit: number = 10, // Default to 10 items per page
-    search: string = '',
-  ) {
+  async viewRegisteredClassesSimple(userId: string) {
     const findStudent = await this.studentRepository.findOne({
       where: { userId: userId },
     });
-    const classes = findStudent.classes;
-    const query = this.classroomRepository.createQueryBuilder('classroom');
-    if (classes.length > 0) {
-      query.where('classroom.classId IN (:...classes)', {
-        classes,
-      });
-    } else {
-      query.where('1 = 1'); // Always true condition
-    }
-    if (search) {
-      query.andWhere('LOWER(classroom.courseTitle) LIKE LOWER(:search)', {
-        search: `%${search}%`,
-      });
-    }
-
-    const [findAllClassroom, totalItems] = await query
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
-
-    const result = findAllClassroom.map((item) => {
-      return {
+    const listRegisteredClasses = await this.classroomRepository.find({
+      where: {
+        classId: In(findStudent.classes),
+        status: 'OPEN',
+      },
+    });
+    const result = [];
+    listRegisteredClasses.forEach((item) =>
+      result.push({
         classCode: item.classCode,
         courseName: item.courseTitle,
         courseCode: item.courseCode,
         tutor: item.tutor.name,
         class: item.classRoom,
-      };
-    });
-
-    const totalPages = Math.ceil(totalItems / limit);
-
-    return {
-      data: result,
-      meta: {
-        totalItems,
-        totalPages,
-        currentPage: page,
-        itemsPerPage: limit,
-      },
-    };
+      }),
+    );
+    return result;
   }
 
   // async unregisterStudentFromClass(

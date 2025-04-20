@@ -82,6 +82,11 @@ export class StudentController {
     return this.viewRegisteredClasses(user.userId, page, limit, q);
   }
 
+  @Get('/view-registered-classes-simple')
+  async viewRegisteredClassesSimple(@CurrentUser() user: any) {
+    return this.studentService.viewRegisteredClassesSimple(user.userId);
+  }
+
   @Get('/class-payment')
   @ApiResponseString()
   async classPayment(@CurrentUser() user: any): Promise<string> {
