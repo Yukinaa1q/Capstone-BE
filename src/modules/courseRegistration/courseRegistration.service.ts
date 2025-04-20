@@ -420,6 +420,7 @@ export class CourseRegistrationService {
           onlineRoom: url.meetingUrl,
           roomAddress: url.meetingId,
           occupied: true,
+          classesIdList: [],
         });
         await this.roomRepository.save(roomie);
       }
