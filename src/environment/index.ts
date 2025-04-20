@@ -14,5 +14,4 @@ export const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || '';
 export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || '';
 export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || '';
 
-export const GOOGLE_CLIENT_EMAIL = process.env.GOOGLE_CLIENT_EMAIL || '';
-export const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY || '';
+export const WHEREBY_API_TOKEN = process.env.WHEREBY_API_TOKEN || '';

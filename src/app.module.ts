@@ -5,7 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CloudinaryModule } from '@services/cloudinary';
 import { AppFeaturesModule } from './modules';
-import { GoogleModule } from '@services/google/google.module';
+import { WherebyModule } from '@services/whereby/whereby.module';
 
 @Module({
   imports: [
@@ -13,7 +13,7 @@ import { GoogleModule } from '@services/google/google.module';
     GuardModule,
     ConfigModule,
     CloudinaryModule,
-    GoogleModule,
+    WherebyModule,
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',

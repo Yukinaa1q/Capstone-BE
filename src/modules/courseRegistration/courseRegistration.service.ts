@@ -21,7 +21,7 @@ import { Room } from './entity/room.entity';
 import { Tutor } from '@modules/tutor/entity/tutor.entity';
 import { generateCustomID } from '@utils';
 import { RoomOccupied } from './entity/roomOccupied.entity';
-import { GoogleMeetService } from '@services/google/google.service';
+import { WherebyService } from '@services/whereby/whereby.service';
 
 export class PaginationMeta {
   totalItems: number;
@@ -48,7 +48,7 @@ export class CourseRegistrationService {
     private readonly tutorRepository: Repository<Tutor>,
     @InjectRepository(RoomOccupied)
     private readonly roomOccupiedRepository: Repository<RoomOccupied>,
-    private readonly googleService: GoogleMeetService,
+    private readonly wherebyService: WherebyService,
   ) {}
 
   getRandomElements<T>(array: T[], count: number): T[] {
@@ -411,10 +411,14 @@ export class CourseRegistrationService {
           });
         }
       } else if (item.isOnline) {
-        const url = await this.googleService.createMeetLink();
+        const url = await this.wherebyService.createMeetingLink(
+          course.courseTitle,
+          course.duration,
+        );
         roomie = this.roomRepository.create({
           roomCode: 'Online room',
           onlineRoom: url.meetingUrl,
+          roomAddress: url.meetingId,
         });
         await this.roomRepository.save(roomie);
       }
