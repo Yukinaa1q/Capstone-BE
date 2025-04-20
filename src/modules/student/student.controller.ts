@@ -82,6 +82,12 @@ export class StudentController {
     return this.viewRegisteredClasses(user.userId, page, limit, q);
   }
 
+  @Get('/class-payment')
+  @ApiResponseString()
+  async classPayment(@CurrentUser() user: any): Promise<string> {
+    return this.studentService.classPayment(user.userId);
+  }
+
   // @Delete('/unregister-class/:classId')
   // @ApiResponseObject(String)
   // async unregisterStudentFromClass(
