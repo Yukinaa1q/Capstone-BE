@@ -358,7 +358,9 @@ export class StudentService {
       where: { userId },
     });
 
-    findStudent.paidClass.concat(findStudent.classes);
+    for (const item of findStudent.classes) {
+      findStudent.paidClass.push(item);
+    }
     findStudent.classes = [];
     await this.studentRepository.save(findStudent);
     return 'You have successfully paid the fee';

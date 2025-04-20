@@ -35,6 +35,12 @@ export class CourseUnRegP1DTO extends CourseRegDTO {
 
   @IsNumber()
   totalRegistration: number;
+
+  @IsString()
+  courseSubject: string;
+
+  @IsString()
+  courseLevel: string;
 }
 
 export class CourseRegP1DTO extends CourseRegDTO {

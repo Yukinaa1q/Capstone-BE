@@ -229,6 +229,8 @@ export class CourseRegistrationService {
         courseCode: course.courseCode,
         registrationDate: 'default',
         totalRegistration: totalRegistrationNumber,
+        courseSubject: course.courseSubject,
+        courseLevel: course.courseLevel,
       };
     });
     return result;
@@ -317,6 +319,8 @@ export class CourseRegistrationService {
         courseCode: course.courseCode,
         registrationDate: 'default',
         totalRegistration: totalRegistrationNumber,
+        courseSubject: course.courseSubject,
+        courseLevel: course.courseLevel,
       };
     });
     const totalPages = Math.ceil(totalItems / limit);
