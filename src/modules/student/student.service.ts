@@ -256,6 +256,7 @@ export class StudentService {
         courseCode: item.courseCode,
         tutor: item.tutor.name,
         class: item.classRoom,
+        courseImg: item.course.courseImage,
       }),
     );
     return result;
