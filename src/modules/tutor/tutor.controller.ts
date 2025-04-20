@@ -65,4 +65,9 @@ export class TutorController {
   async viewRegisteredClasses(@CurrentUser() user: any) {
     return this.tutorService.viewRegisteredClasses(user.userId);
   }
+
+  @Get('/view-registered-classes-simple')
+  async viewRegisteredClassesSimple(@CurrentUser() user: any) {
+    return this.tutorService.viewRegisteredClassesSimple(user.userId);
+  }
 }
