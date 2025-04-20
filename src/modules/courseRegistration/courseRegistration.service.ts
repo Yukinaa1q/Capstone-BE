@@ -419,6 +419,7 @@ export class CourseRegistrationService {
           roomCode: 'Online room',
           onlineRoom: url.meetingUrl,
           roomAddress: url.meetingId,
+          occupied: true,
         });
         await this.roomRepository.save(roomie);
       }
