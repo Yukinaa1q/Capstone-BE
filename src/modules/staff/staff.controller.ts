@@ -35,7 +35,7 @@ export class StaffController {
     return this.staffService.getAllStaffForTable();
   }
 
-  @Put('/update/:staffId')
+  @Post('/update/:staffId')
   @ApiResponseObject(Staff)
   async updateStaffInfo(
     @Param('staffId') staffId: string,
