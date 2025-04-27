@@ -176,7 +176,7 @@ export class ClassroomService {
       isOnline: data.isOnline,
       courseId: course.courseId,
       classRoom: roomie.roomCode,
-      currentStudents: 0,
+      currentStudents: studentIdList.length,
       tutorId: tutor.userId,
       studentList: studentIdList,
       students: students,
@@ -207,7 +207,7 @@ export class ClassroomService {
     await this.tutorRepository.save(tutor);
 
     const findStudents = await this.studentRepo.find({
-      where: { userId: In([studentIdList]) },
+      where: { userId: In(studentIdList) },
     });
 
     findStudents.map(async (item) => {
@@ -272,7 +272,7 @@ export class ClassroomService {
         classRegisteredStudents: classs.currentStudents,
         tutorId: classs.tutor.tutorCode,
         tutor: classs.tutor.name,
-        room: classs.room.roomCode || classs.room.onlineRoom,
+        room: classs.room.onlineRoom || classs.room.roomCode,
         openStatus: classs.status,
         courseName: classs.courseTitle,
       });
