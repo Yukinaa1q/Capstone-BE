@@ -85,7 +85,7 @@ export class CourseService {
       const [findClassInCourse, classNumber] =
         await this.classRepository.findAndCount({
           where: {
-            classId: In([course.classes]),
+            classId: In(course.classes),
             status: 'open',
           },
         });
@@ -94,7 +94,7 @@ export class CourseService {
         totalStudentNumber = totalStudentNumber + item.currentStudents;
       }
       result.push({
-        data: course,
+        ...course,
         totalClassNumber: classNumber,
         totalStudentNumber,
       });
