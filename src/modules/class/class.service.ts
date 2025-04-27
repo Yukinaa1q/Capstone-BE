@@ -181,7 +181,7 @@ export class ClassroomService {
       studentList: studentIdList,
       students: students,
       roomId: roomie.roomId,
-      status: 'payment',
+      status: 'pending',
       startDate: new Date().toISOString(),
       endDate: addMonths(new Date(), course.duration).toISOString(),
     });
