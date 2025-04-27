@@ -206,14 +206,16 @@ export class ClassroomService {
     tutor.classList.push(newClassroom.classId);
     await this.tutorRepository.save(tutor);
 
-    const findStudents = await this.studentRepo.find({
-      where: { userId: In(studentIdList) },
-    });
+    if (studentIdList.length === 0) {
+      const findStudents = await this.studentRepo.find({
+        where: { userId: In(studentIdList) },
+      });
 
-    findStudents.map(async (item) => {
-      item.classes.push(newClassroom.classId);
-      await this.studentRepo.save(item);
-    });
+      findStudents.map(async (item) => {
+        item.classes.push(newClassroom.classId);
+        await this.studentRepo.save(item);
+      });
+    }
 
     return newClassroom;
   }
