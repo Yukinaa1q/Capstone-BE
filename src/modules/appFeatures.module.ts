@@ -9,6 +9,7 @@ import { CourseRegistrationModule } from './courseRegistration/courseRegistratio
 import { AdminModule } from './admin';
 import { StaffModule } from './staff';
 import { RoomModule } from './room/room.module';
+import { GradeModule } from './grade/grade.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { RoomModule } from './room/room.module';
     AdminModule,
     StaffModule,
     RoomModule,
+    GradeModule,
   ],
 })
 export class AppFeaturesModule {}

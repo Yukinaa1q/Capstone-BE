@@ -7,12 +7,24 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClassroomController } from './class.controller';
 import { ClassroomService } from './class.service';
 import { Classroom } from './entity/class.entity';
+import { Room } from '@modules/courseRegistration/entity/room.entity';
+import { RoomOccupied } from '@modules/courseRegistration/entity/roomOccupied.entity';
+import { WherebyModule } from '@services/whereby/whereby.module';
+import { Course } from '@modules/course/entity/course.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Classroom, Tutor, Student]),
+    TypeOrmModule.forFeature([
+      Classroom,
+      Tutor,
+      Student,
+      Room,
+      RoomOccupied,
+      Course,
+    ]),
     TutorModule,
     CourseModule,
+    WherebyModule,
   ],
   controllers: [ClassroomController],
   providers: [ClassroomService],

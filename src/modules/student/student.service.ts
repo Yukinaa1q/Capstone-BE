@@ -338,4 +338,27 @@ export class StudentService {
     await this.studentRepository.save(findStudent);
     return 'You have successfully paid the fee';
   }
+
+  async viewStudentClassHistory(studentId: string) {
+    const findStudent = await this.studentRepository.findOne({
+      where: { userId: studentId },
+    });
+    const result = [];
+    if (findStudent.paidClass && findStudent.paidClass.length > 0) {
+      const findHistoryClasses = await this.classroomRepository.findBy({
+        classId: In([findStudent.paidClass]),
+      });
+      for (const item of findHistoryClasses) {
+        result.push({
+          courseTitle: item.courseTitle,
+          courseCode: item.courseCode,
+          classCode: item.classCode,
+          classSession: item.studyWeek,
+          classShift: item.studyShift,
+          studyRoom: item.room.roomCode,
+        });
+      }
+    }
+    return result;
+  }
 }

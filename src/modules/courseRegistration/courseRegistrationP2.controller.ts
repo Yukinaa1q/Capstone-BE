@@ -88,6 +88,16 @@ export class Phase2RegisterController {
     return this.registerP2Service.viewRandomUnregisteredClasses(user.userId);
   }
 
+  @Get('search-user-for-timetable')
+  async searchUserForTimetable(@Query('search') search: string) {
+    return this.registerP2Service.searchUserForTimetable(search);
+  }
+
+  @Get('view-student-tutor-timetable/:userId')
+  async viewStudentTutorTimetable(@Param('userId') userId: string) {
+    return this.registerP2Service.showTimetable(userId);
+  }
+
   @Delete('delete-class/:classId')
   @ApiResponseString()
   async deleteClass(@Param('classId') classId: string): Promise<string> {

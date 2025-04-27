@@ -10,6 +10,7 @@ import { TutorDetailDTO } from './dto/tutorDetails.dto';
 import { ResponseCode, ServiceException } from '@common/error';
 import { Classroom } from '@modules/class/entity/class.entity';
 import { addDays, addMonths } from 'date-fns';
+import { paymentFormula } from 'src/utils/paymentFormula';
 
 @Injectable()
 export class TutorService {
@@ -159,6 +160,13 @@ export class TutorService {
         status: Not(In(['pending'])),
       },
     });
+    for (const item of listRegisteredClasses) {
+      findTutor.paidClassList.push(item.classId);
+    }
+
+    findTutor.classList = findTutor.classList.filter(
+      (item) => !findTutor.paidClassList.includes(item),
+    );
     const result = [];
     listRegisteredClasses.forEach((item) =>
       result.push({
@@ -167,8 +175,11 @@ export class TutorService {
         courseCode: item.courseCode,
         tutor: item.tutor.name,
         class: item.classRoom,
+        courseImage: item.course.courseImage,
+        classUrl: item.room.onlineRoom || 'None',
       }),
     );
+    await this.tutorRepository.save(findTutor);
     return result;
   }
 
@@ -217,5 +228,34 @@ export class TutorService {
     }
     await this.tutorRepository.save(student);
     return this.tutorRepository.findOne({ where: { userId: tutorId } });
+  }
+
+  async viewTutorClassHistory(tutorId: string) {
+    const findTutor = await this.tutorRepository.findOne({
+      where: { userId: tutorId },
+    });
+    const result = [];
+    if (findTutor.paidClassList && findTutor.paidClassList.length > 0) {
+      const findHistoryClasses = await this.classRepository.findBy({
+        classId: In([findTutor.paidClassList]),
+      });
+      for (const item of findHistoryClasses) {
+        let paymentTutor = paymentFormula(
+          item.course.coursePrice,
+          item.currentStudents,
+          item.course.duration,
+          0.4,
+        );
+        result.push({
+          courseTitle: item.courseTitle,
+          courseCode: item.courseCode,
+          classCode: item.classCode,
+          classSession: item.studyWeek,
+          classShift: item.studyShift,
+          studyRoom: item.room.roomCode,
+          payment: paymentTutor,
+        });
+      }
+    }
   }
 }

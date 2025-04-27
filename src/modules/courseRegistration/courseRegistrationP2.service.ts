@@ -354,6 +354,92 @@ export class CourseRegistrationP2Service {
     return 'The class is successfully deleted';
   }
 
+  async searchUserForTimetable(search: string = '') {
+    if (!search) {
+      return [];
+    }
+    try {
+      // Run both queries concurrently
+      const [students, tutors] = await Promise.all([
+        this.studentRepository
+          .createQueryBuilder('student')
+          .where('LOWER(student.name) LIKE LOWER(:search)', {
+            search: `%${search}%`,
+          })
+          .getMany(),
+        this.tutorRepository
+          .createQueryBuilder('tutor')
+          .where('LOWER(tutor.name) LIKE LOWER(:search)', {
+            search: `%${search}%`,
+          })
+          .getMany(),
+      ]);
+      const result = [
+        ...students.map((item) => ({
+          userId: item.userId,
+          userCode: item.studentCode,
+          name: item.name,
+          avatarUrl: item.avatarUrl || 'None',
+        })),
+        ...tutors.map((item) => ({
+          userId: item.userId,
+          userCode: item.tutorCode,
+          name: item.name,
+          avatarUrl: item.avatarUrl || 'None',
+        })),
+      ];
+
+      return result;
+    } catch (error) {
+      // Handle errors appropriately
+      console.error('Error searching users:', error);
+      throw new Error('Failed to search users');
+    }
+  }
+
+  async showTimetable(userId: string) {
+    const [student, tutor] = await Promise.all([
+      this.studentRepository.findOne({ where: { userId: userId } }),
+      this.tutorRepository.findOne({ where: { userId: userId } }),
+    ]);
+    if (student) {
+      const findCurrentClass = await this.classroomRepository.find({
+        where: {
+          classId: In([student.paidClass]),
+          status: 'open',
+        },
+      });
+      const result = findCurrentClass.map((item) => {
+        return {
+          subject: item.course.courseSubject,
+          studyWeek: item.studyWeek,
+          studyShift: item.studyShift,
+          room: item.room.roomCode,
+          address: item.room.roomAddress || item.room.onlineRoom,
+        };
+      });
+      return result;
+    }
+    if (tutor) {
+      const findCurrentClass = await this.classroomRepository.find({
+        where: {
+          classId: In([tutor.classList]),
+          status: 'open',
+        },
+      });
+      const result = findCurrentClass.map((item) => {
+        return {
+          subject: item.course.courseSubject,
+          studyWeek: item.studyWeek,
+          studyShift: item.studyShift,
+          room: item.room.roomCode,
+          address: item.room.roomAddress || item.room.onlineRoom,
+        };
+      });
+      return result;
+    }
+  }
+
   @Cron(CronExpression.EVERY_12_HOURS)
   async runCron() {
     await this.checkClassStatus();
@@ -365,12 +451,18 @@ export class CourseRegistrationP2Service {
     const allClasses = await this.classroomRepository.find();
     for (const aClass of allClasses) {
       if (
-        aClass.status === 'Open' &&
+        aClass.status === 'open' &&
         today >= addDays(new Date(aClass.startDate), 20)
       ) {
-        const findStudentInClass = await this.studentRepository.find({
-          where: { classes: In([aClass.classId]) },
-        });
+        // const findStudentInClass = await this.studentRepository.find({
+        //   where: { classes: In([aClass.classId]) },
+        // });
+        let classId = aClass.classId;
+        const findStudentInClass = await this.studentRepository
+          .createQueryBuilder('student')
+          .where(':classId = ANY(student.classes)', { classId })
+          .getMany();
+
         for (const student of findStudentInClass) {
           if (!student.paidClass.includes(aClass.classId)) {
             const removeClass = student.classes.indexOf(aClass.classId);
@@ -390,17 +482,32 @@ export class CourseRegistrationP2Service {
     const today = new Date();
     const allClasses = await this.classroomRepository.find();
     for (const aClass of allClasses) {
-      if (aClass.status !== 'Open') {
+      if (aClass.status !== 'open') {
         if (
           today >= addDays(new Date(aClass.startDate), 10) &&
-          aClass.currentStudents <= 10
+          aClass.currentStudents < 10
         ) {
           const deleteClass = await this.deleteClass(aClass.classId);
         } else if (
           today >= addDays(new Date(aClass.startDate), 10) &&
           aClass.currentStudents >= 10
         ) {
-          aClass.status = 'Registration Time';
+          aClass.status = 'payment';
+          await this.classroomRepository.save(aClass);
+        } else if (
+          today >= addDays(new Date(aClass.startDate), 20) &&
+          aClass.currentStudents >= 10
+        ) {
+          aClass.status = 'open';
+          await this.classroomRepository.save(aClass);
+        }
+      }
+
+      if (aClass.status === 'open') {
+        if (
+          today >= addMonths(new Date(aClass.startDate), aClass.course.duration)
+        ) {
+          aClass.status = 'close';
           await this.classroomRepository.save(aClass);
         }
       }

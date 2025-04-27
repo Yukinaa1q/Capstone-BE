@@ -337,6 +337,31 @@ export class CourseRegistrationService {
   }
 
   async newTutorReg(userId: string, data: NewTutorRegDTO): Promise<string> {
+    //check tutor qualification
+    let checkTutorQualification = false;
+
+    const tutor = await this.tutorRepository.findOne({
+      where: { userId },
+    });
+
+    const course = await this.courseRepository.findOne({
+      where: { courseId: data.courseId },
+    });
+
+    for (const item of tutor.qualifiedSubject) {
+      if (
+        item.subject === course.courseSubject &&
+        parseInt(item.level) >= parseInt(course.courseLevel)
+      ) {
+        checkTutorQualification = true;
+        break;
+      }
+    }
+
+    if (!checkTutorQualification) {
+      return 'You are not supposed to teach this course';
+    }
+
     //check if that tutor is having another class of another subject at that same time
 
     let conditionCheck = data.registrationList.map((item) => {
@@ -375,12 +400,7 @@ export class CourseRegistrationService {
       });
     }
 
-    const tutor = await this.tutorRepository.findOne({
-      where: { userId },
-    });
-    const course = await this.courseRepository.findOne({
-      where: { courseId: data.courseId },
-    });
+    ////////////////////////////////////////////////////////// previous course and tutor query place
 
     let result: { studyShift: string; studyWeek: string }[] = [];
 

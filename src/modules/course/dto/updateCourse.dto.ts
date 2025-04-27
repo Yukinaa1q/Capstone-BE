@@ -14,6 +14,14 @@ export class CourseCodeAndTitleDTO {
   courseTitle: string;
 
   @ApiProperty()
+  @IsString()
+  courseLevel: string;
+
+  @ApiProperty()
+  @IsString()
+  courseSubject: string;
+
+  @ApiProperty()
   @IsNumber()
   duration: number;
 }

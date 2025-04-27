@@ -22,6 +22,7 @@ import { CreateCourseDTO } from './dto/createCourse.dto';
 import { FileUploadDto } from './dto/fileUpload.dto';
 import { UpdateCourseDTO, CourseCodeAndTitleDTO } from './dto/updateCourse.dto';
 import { Course } from './entity/course.entity';
+import { ViewAllCourseDTO } from './dto/viewAllCourse.dto';
 
 @ApiAuthController('course')
 export class CourseController {
@@ -92,8 +93,8 @@ export class CourseController {
   }
 
   @Get('all-course')
-  @ApiResponseArray(Course)
-  async getAllCourse(): Promise<Course[]> {
+  @ApiResponseArray(ViewAllCourseDTO)
+  async getAllCourse(): Promise<ViewAllCourseDTO[]> {
     return this.courseService.findAllCourse();
   }
 

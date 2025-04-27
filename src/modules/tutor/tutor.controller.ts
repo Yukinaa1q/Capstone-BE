@@ -70,4 +70,9 @@ export class TutorController {
   async viewRegisteredClassesSimple(@CurrentUser() user: any) {
     return this.tutorService.viewRegisteredClassesSimple(user.userId);
   }
+
+  @Get('/view-tutor-class-history/:userId')
+  async viewTutorClassHistory(@Param('userId') userId: string) {
+    return this.tutorService.viewTutorClassHistory(userId);
+  }
 }

@@ -18,7 +18,9 @@ export class ClassroomController {
 
   @Post('create-class')
   @ApiResponseObject(Classroom)
-  async createClass(@Body() data: CreateClassroomDTO): Promise<Classroom> {
+  async createClass(
+    @Body() data: CreateClassroomDTO,
+  ): Promise<Classroom | string> {
     return this.classroomService.createClass(data);
   }
 

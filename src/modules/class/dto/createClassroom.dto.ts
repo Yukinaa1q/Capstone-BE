@@ -1,11 +1,14 @@
 import { OmitUpdateType } from '@services/openApi';
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { Classroom } from '../entity/class.entity';
 
 export class CreateClassroomDTO extends OmitUpdateType(Classroom, ['classId']) {
-  @IsString()
-  classCode: string;
-
   @IsString()
   tutorCode: string;
 
@@ -21,4 +24,19 @@ export class CreateClassroomDTO extends OmitUpdateType(Classroom, ['classId']) {
   @IsArray()
   @IsOptional()
   studentIdList?: string[];
+
+  @IsString()
+  courseTitle: string;
+
+  @IsNumber()
+  maxStudents: number;
+
+  @IsString()
+  studyWeek: string;
+
+  @IsString()
+  studyShift: string;
+
+  @IsBoolean()
+  isOnline: boolean;
 }

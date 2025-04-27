@@ -93,6 +93,11 @@ export class StudentController {
     return this.studentService.classPayment(user.userId);
   }
 
+  @Get('/view-student-class-history/:studentId')
+  async viewClassHistory(@Param('studentId') studentId: string) {
+    return this.studentService.viewStudentClassHistory(studentId);
+  }
+
   // @Delete('/unregister-class/:classId')
   // @ApiResponseObject(String)
   // async unregisterStudentFromClass(

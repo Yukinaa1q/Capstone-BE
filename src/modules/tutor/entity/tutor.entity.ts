@@ -47,6 +47,11 @@ export class Tutor extends User {
   @IsArray()
   classList: string[];
 
+  @Column({ default: [], type: 'text', array: true })
+  @ApiProperty()
+  @IsArray()
+  paidClassList: string[];
+
   constructor(partial: Partial<User>) {
     super();
     Object.assign(this, partial);
