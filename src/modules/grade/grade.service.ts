@@ -19,7 +19,7 @@ export class GradeService {
 
   async viewStudentGradeInClass(classId: string) {
     const classroom = await this.classRepository.findOne({
-      where: { classId: classId },
+      where: { classCode: classId },
     });
     // Get all student IDs in this class
     const studentIds = classroom.studentList || [];
@@ -36,7 +36,7 @@ export class GradeService {
     }
     // Find existing grades for this class
     const existingGrades = await this.gradeRepository.find({
-      where: { classroomId: classId, studentId: In(studentIds) },
+      where: { classroomId: classroom.classId, studentId: In(studentIds) },
     });
 
     // Check if this is the first time - no students have grades yet
@@ -52,7 +52,7 @@ export class GradeService {
       const gradesToCreate = students.map((student) => {
         return this.gradeRepository.create({
           studentId: student.userId,
-          classroomId: classId,
+          classroomId: classroom.classId,
           midtermScore: 0,
           assignmentScore: 0,
           homeworkScore: 0,
@@ -70,11 +70,10 @@ export class GradeService {
         );
 
         return {
-          student: {
-            id: student.userId,
-            name: student.name,
-            studentCode: student.studentCode,
-          },
+          id: student.userId,
+          name: student.name,
+          studentCode: student.studentCode,
+
           grades: studentGrades,
         };
       });
@@ -112,7 +111,7 @@ export class GradeService {
           // Create a new grade placeholder for the student
           const newGrade = this.gradeRepository.create({
             studentId: student.userId,
-            classroomId: classId,
+            classroomId: classroom.classId,
             midtermScore: 0,
             assignmentScore: 0,
             homeworkScore: 0,
@@ -122,22 +121,20 @@ export class GradeService {
           await this.gradeRepository.save(newGrade);
 
           return {
-            student: {
-              id: student.userId,
-              name: student.name,
-              studentCode: student.studentCode,
-            },
-            grades: [newGrade],
+            id: student.userId,
+            name: student.name,
+            studentCode: student.studentCode,
+
+            grades: newGrade,
           };
         }
 
         // Return student with existing grades
         return {
-          student: {
-            id: student.userId,
-            name: student.name,
-            studentCode: student.studentCode,
-          },
+          id: student.userId,
+          name: student.name,
+          studentCode: student.studentCode,
+
           grades: studentGrades,
         };
       }),
@@ -196,7 +193,10 @@ export class GradeService {
       where: { userId: studentId },
     });
     const classroom = await this.classRepository.find({
-      where: { classId: In(student.paidClass) },
+      where: [
+        { classId: In(student.paidClass) },
+        { classId: In(student.classes) },
+      ],
     });
 
     const classId = classroom.map((item) => item.classId);
