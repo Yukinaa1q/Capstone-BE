@@ -154,20 +154,6 @@ export class TutorService {
     const findTutor = await this.tutorRepository.findOne({
       where: { userId: userId },
     });
-    const listRegisteredClasses = await this.classRepository.find({
-      where: {
-        classId: In(findTutor.classList),
-        status: Not(In(['pending'])),
-      },
-    });
-    for (const item of listRegisteredClasses) {
-      findTutor.paidClassList.push(item.classId);
-    }
-
-    findTutor.classList = findTutor.classList.filter(
-      (item) => !findTutor.paidClassList.includes(item),
-    );
-    await this.tutorRepository.save(findTutor);
 
     const listPaidClasses = await this.classRepository.find({
       where: { classId: In(findTutor.paidClassList) },
@@ -242,7 +228,7 @@ export class TutorService {
     const result = [];
     if (findTutor.paidClassList && findTutor.paidClassList.length > 0) {
       const findHistoryClasses = await this.classRepository.findBy({
-        classId: In([findTutor.paidClassList]),
+        classId: In(findTutor.paidClassList),
       });
       for (const item of findHistoryClasses) {
         let paymentTutor = paymentFormula(
@@ -258,9 +244,10 @@ export class TutorService {
           classSession: item.studyWeek,
           classShift: item.studyShift,
           studyRoom: item.room.roomCode,
-          payment: paymentTutor,
+          pricePaid: paymentTutor,
         });
       }
     }
+    return result;
   }
 }

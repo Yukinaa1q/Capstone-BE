@@ -392,7 +392,6 @@ export class CourseRegistrationP2Service {
       return result;
     } catch (error) {
       // Handle errors appropriately
-      console.error('Error searching users:', error);
       throw new Error('Failed to search users');
     }
   }
@@ -403,37 +402,63 @@ export class CourseRegistrationP2Service {
       this.tutorRepository.findOne({ where: { userId: userId } }),
     ]);
     if (student) {
-      const findCurrentClass = await this.classroomRepository.find({
-        where: {
-          classId: In([student.paidClass]),
-          status: 'open',
-        },
-      });
-      const result = findCurrentClass.map((item) => {
-        return {
-          subject: item.course.courseSubject,
-          studyWeek: item.studyWeek,
-          studyShift: item.studyShift,
-          room: item.room.roomCode,
-          address: item.room.roomAddress || item.room.onlineRoom,
-        };
-      });
+      const [findPaidClass, findCurrentClass] = await Promise.all([
+        await this.classroomRepository.find({
+          where: {
+            classId: In(student.paidClass),
+          },
+        }),
+        await this.classroomRepository.find({
+          where: {
+            classId: In(student.classes),
+            status: Not(In(['pending'])),
+          },
+        }),
+      ]);
+
+      let result = [];
+      if (findPaidClass && findPaidClass.length > 0) {
+        result = result.concat(
+          findPaidClass.map((item) => {
+            return {
+              subject: item.course.courseTitle,
+              studyWeek: item.studyWeek,
+              studyShift: item.studyShift,
+              room: item.room.roomCode,
+              address: item.room.onlineRoom || item.room.roomAddress,
+            };
+          }),
+        );
+      }
+      if (findCurrentClass && findCurrentClass.length > 0) {
+        result = result.concat(
+          findCurrentClass.map((item) => {
+            return {
+              subject: item.course.courseTitle,
+              studyWeek: item.studyWeek,
+              studyShift: item.studyShift,
+              room: item.room.roomCode,
+              address: item.room.onlineRoom || item.room.roomAddress,
+            };
+          }),
+        );
+      }
       return result;
     }
     if (tutor) {
       const findCurrentClass = await this.classroomRepository.find({
         where: {
-          classId: In([tutor.classList]),
-          status: 'open',
+          classId: In(tutor.paidClassList),
+          status: Not(In(['pending'])),
         },
       });
       const result = findCurrentClass.map((item) => {
         return {
-          subject: item.course.courseSubject,
+          subject: item.course.courseTitle,
           studyWeek: item.studyWeek,
           studyShift: item.studyShift,
           room: item.room.roomCode,
-          address: item.room.roomAddress || item.room.onlineRoom,
+          address: item.room.onlineRoom || item.room.roomAddress,
         };
       });
       return result;
@@ -490,6 +515,14 @@ export class CourseRegistrationP2Service {
           aClass.status === 'pending'
         ) {
           aClass.status = 'payment';
+          const findTutor = await this.tutorRepository.findOne({
+            where: { userId: aClass.tutorId },
+          });
+          findTutor.paidClassList.push(aClass.classId);
+          findTutor.classList = findTutor.classList.filter(
+            (item) => !findTutor.paidClassList.includes(item),
+          );
+          await this.tutorRepository.save(findTutor);
           await this.classroomRepository.save(aClass);
         } else if (today >= addDays(new Date(aClass.startDate), 20)) {
           aClass.status = 'open';
