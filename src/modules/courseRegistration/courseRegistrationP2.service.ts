@@ -447,32 +447,28 @@ export class CourseRegistrationP2Service {
   }
 
   async checkPayment() {
-    const today = new Date();
-    const allClasses = await this.classroomRepository.find();
+    const allClasses = await this.classroomRepository.find({
+      where: { status: 'open' },
+    });
     for (const aClass of allClasses) {
-      if (
-        aClass.status === 'open' &&
-        today >= addDays(new Date(aClass.startDate), 20)
-      ) {
-        // const findStudentInClass = await this.studentRepository.find({
-        //   where: { classes: In([aClass.classId]) },
-        // });
-        let classId = aClass.classId;
-        const findStudentInClass = await this.studentRepository
-          .createQueryBuilder('student')
-          .where(':classId = ANY(student.classes)', { classId })
-          .getMany();
+      // const findStudentInClass = await this.studentRepository.find({
+      //   where: { classes: In([aClass.classId]) },
+      // });
+      let classId = aClass.classId;
+      const findStudentInClass = await this.studentRepository
+        .createQueryBuilder('student')
+        .where(':classId = ANY(student.classes)', { classId })
+        .getMany();
 
-        for (const student of findStudentInClass) {
-          if (!student.paidClass.includes(aClass.classId)) {
-            const removeClass = student.classes.indexOf(aClass.classId);
-            student.classes.splice(removeClass, 1);
-            const removeStudent = aClass.studentList.indexOf(student.userId);
-            aClass.studentList.splice(removeStudent, 1);
-            aClass.currentStudents = aClass.currentStudents - 1;
-            await this.studentRepository.save(student);
-            await this.classroomRepository.save(aClass);
-          }
+      for (const student of findStudentInClass) {
+        if (!student.paidClass.includes(aClass.classId)) {
+          const removeClass = student.classes.indexOf(aClass.classId);
+          student.classes.splice(removeClass, 1);
+          const removeStudent = aClass.studentList.indexOf(student.userId);
+          aClass.studentList.splice(removeStudent, 1);
+          aClass.currentStudents = aClass.currentStudents - 1;
+          await this.studentRepository.save(student);
+          await this.classroomRepository.save(aClass);
         }
       }
     }
@@ -490,14 +486,12 @@ export class CourseRegistrationP2Service {
           const deleteClass = await this.deleteClass(aClass.classId);
         } else if (
           today >= addDays(new Date(aClass.startDate), 10) &&
-          aClass.currentStudents >= 10
+          aClass.currentStudents >= 10 &&
+          aClass.status === 'pending'
         ) {
           aClass.status = 'payment';
           await this.classroomRepository.save(aClass);
-        } else if (
-          today >= addDays(new Date(aClass.startDate), 20) &&
-          aClass.currentStudents >= 10
-        ) {
+        } else if (today >= addDays(new Date(aClass.startDate), 20)) {
           aClass.status = 'open';
           await this.classroomRepository.save(aClass);
         }

@@ -242,25 +242,47 @@ export class StudentService {
     const findStudent = await this.studentRepository.findOne({
       where: { userId: userId },
     });
+    const listPaidClasses = await this.classroomRepository.find({
+      where: {
+        classId: In(findStudent.paidClass),
+      },
+    });
     const listRegisteredClasses = await this.classroomRepository.find({
-      where: [
-        { classId: In(findStudent.paidClass) },
-        { status: Not(In(['pending'])) },
-      ],
+      where: {
+        classId: In(findStudent.classes),
+        status: Not(In(['pending'])),
+      },
     });
     const result = [];
-    listRegisteredClasses.forEach((item) =>
-      result.push({
-        classCode: item.classCode,
-        courseName: item.courseTitle,
-        courseCode: item.courseCode,
-        tutor: item.tutor.name,
-        class: item.classRoom,
-        courseImg: item.course.courseImage,
-        classId: item.classId,
-        classUrl: item.room.onlineRoom || 'None',
-      }),
-    );
+    if (listPaidClasses && listPaidClasses.length > 0) {
+      listPaidClasses.forEach((item) =>
+        result.push({
+          classCode: item.classCode,
+          courseName: item.courseTitle,
+          courseCode: item.courseCode,
+          tutor: item.tutor.name,
+          class: item.classRoom,
+          courseImg: item.course.courseImage,
+          classId: item.classId,
+          classUrl: item.room.onlineRoom || 'None',
+        }),
+      );
+    }
+    if (listRegisteredClasses && listRegisteredClasses.length > 0) {
+      listRegisteredClasses.forEach((item) =>
+        result.push({
+          classCode: item.classCode,
+          courseName: item.courseTitle,
+          courseCode: item.courseCode,
+          tutor: item.tutor.name,
+          class: item.classRoom,
+          courseImg: item.course.courseImage,
+          classId: item.classId,
+          classUrl: item.room.onlineRoom || 'None',
+        }),
+      );
+    }
+
     return result;
   }
 
