@@ -167,19 +167,24 @@ export class TutorService {
     findTutor.classList = findTutor.classList.filter(
       (item) => !findTutor.paidClassList.includes(item),
     );
+    await this.tutorRepository.save(findTutor);
+
+    const listPaidClasses = await this.classRepository.find({
+      where: { classId: In(findTutor.paidClassList) },
+    });
     const result = [];
-    listRegisteredClasses.forEach((item) =>
+    listPaidClasses.forEach((item) =>
       result.push({
         classCode: item.classCode,
         courseName: item.courseTitle,
         courseCode: item.courseCode,
         tutor: item.tutor.name,
         class: item.classRoom,
-        courseImage: item.course.courseImage,
+        courseImg: item.course.courseImage,
         classUrl: item.room.onlineRoom || 'None',
       }),
     );
-    await this.tutorRepository.save(findTutor);
+
     return result;
   }
 

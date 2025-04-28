@@ -10,6 +10,6 @@ export function paymentFormula(
   if (al < 0 || al > 1) {
     throw new Error('Tutor percentage must be between 0 and 1');
   }
-  const result = (P * S * al) / D;
+  const result = (P * S * al) / D + 5_000_000;
   return result;
 }
