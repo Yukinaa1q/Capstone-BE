@@ -246,7 +246,10 @@ export class ClassroomService {
     }
 
     if (findClass.maxStudents < data.studentIdList.length) {
-      throw new Error('Dit me may het slot roi ');
+      throw new ServiceException(
+        ResponseCode.CLASS_FULL,
+        'Sorry, full capacity',
+      );
     }
 
     if (data.studentIdList) {
