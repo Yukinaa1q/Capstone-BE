@@ -245,6 +245,10 @@ export class ClassroomService {
       await this.classroomRepository.save(findClass);
     }
 
+    if (findClass.maxStudents < data.studentIdList.length) {
+      throw new Error('Dit me may het slot roi ');
+    }
+
     if (data.studentIdList) {
       console.log(data.studentIdList);
 
