@@ -256,17 +256,34 @@ export class ClassroomService {
         });
         await this.classroomRepository.save(findClass);
       } else if (data.studentIdList.length < findClass.studentList.length) {
-        console.log('Less students');
+        // Removing students
         findClass.currentStudents = data.studentIdList.length;
-        findStudents.map(async (item) => {
-          if (findClass.studentList.includes(item.userId)) {
-            const removeStudent = findClass.studentList.indexOf(item.userId);
-            findClass.studentList.splice(removeStudent, 1);
-            const removeClass = item.paidClass.indexOf(findClass.classId);
-            item.paidClass.splice(removeClass, 1);
-            await this.studentRepo.save(item);
+
+        // Find students to remove (those in old list but not in new list)
+        const studentsToRemove = findClass.studentList.filter(
+          (studentId) => !data.studentIdList.includes(studentId),
+        );
+
+        // Update class's student list directly with filter
+        findClass.studentList = findClass.studentList.filter((studentId) =>
+          data.studentIdList.includes(studentId),
+        );
+
+        // Remove those students
+        for (const studentIdToRemove of studentsToRemove) {
+          // Also update the student record
+          const student = await this.studentRepo.findOne({
+            where: { userId: studentIdToRemove },
+          });
+
+          if (student) {
+            const classIndex = student.paidClass.indexOf(findClass.classId);
+            if (classIndex !== -1) {
+              student.paidClass.splice(classIndex, 1);
+              await this.studentRepo.save(student);
+            }
           }
-        });
+        }
         await this.classroomRepository.save(findClass);
       }
     }
