@@ -154,7 +154,10 @@ export class GradeService {
   async updateGrade(data: UpdateGradeDTO[]) {
     for (const item of data) {
       const grade = await this.gradeRepository.findOne({
-        where: { classroomId: item.classId, studentId: In([item.studentId]) },
+        where: {
+          classroomId: item.classroomId,
+          studentId: In([item.studentId]),
+        },
       });
       await this.gradeRepository.update(grade.gradeId, item);
     }

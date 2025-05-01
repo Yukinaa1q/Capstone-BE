@@ -206,7 +206,7 @@ export class ClassroomService {
     tutor.classList.push(newClassroom.classId);
     await this.tutorRepository.save(tutor);
 
-    if (studentIdList.length === 0) {
+    if (studentIdList.length > 0) {
       const findStudents = await this.studentRepo.find({
         where: { userId: In(studentIdList) },
       });
@@ -240,32 +240,34 @@ export class ClassroomService {
       where: { classId: classId },
     });
 
-    findClass.currentStudents = data.studentIdList.length;
-
     const findStudents = await this.studentRepo.find({
       where: { userId: In(data.studentIdList) },
     });
+    console.log(data.studentIdList);
     if (data.studentIdList) {
       if (data.studentIdList.length > findClass.studentList.length) {
         findStudents.map(async (item) => {
           if (!findClass.studentList.includes(item.userId)) {
+            findClass.currentStudents = data.studentIdList.length;
             findClass.studentList.push(item.userId);
             item.paidClass.push(findClass.classId);
             await this.studentRepo.save(item);
-            await this.classroomRepository.save(findClass);
           }
         });
+        await this.classroomRepository.save(findClass);
       } else if (data.studentIdList.length < findClass.studentList.length) {
+        console.log('Less students');
+        findClass.currentStudents = data.studentIdList.length;
         findStudents.map(async (item) => {
-          if (!findClass.studentList.includes(item.userId)) {
+          if (findClass.studentList.includes(item.userId)) {
             const removeStudent = findClass.studentList.indexOf(item.userId);
             findClass.studentList.splice(removeStudent, 1);
             const removeClass = item.paidClass.indexOf(findClass.classId);
             item.paidClass.splice(removeClass, 1);
             await this.studentRepo.save(item);
-            await this.classroomRepository.save(findClass);
           }
         });
+        await this.classroomRepository.save(findClass);
       }
     }
 

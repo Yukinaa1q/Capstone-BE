@@ -2,7 +2,7 @@ import { IsDecimal, IsOptional, IsString } from 'class-validator';
 
 export class UpdateGradeDTO {
   @IsString()
-  classId: string;
+  classroomId: string;
 
   @IsString()
   studentId: string;

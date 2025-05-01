@@ -369,7 +369,7 @@ export class StudentService {
     const result = [];
     if (findStudent.paidClass && findStudent.paidClass.length > 0) {
       const findHistoryClasses = await this.classroomRepository.findBy({
-        classId: In([findStudent.paidClass]),
+        classId: In(findStudent.paidClass),
       });
       for (const item of findHistoryClasses) {
         result.push({

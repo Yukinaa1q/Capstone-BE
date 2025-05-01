@@ -506,7 +506,8 @@ export class CourseRegistrationP2Service {
       if (aClass.status !== 'open') {
         if (
           today >= addDays(new Date(aClass.startDate), 10) &&
-          aClass.currentStudents < 10
+          aClass.currentStudents < 10 &&
+          aClass.status === 'pending'
         ) {
           const deleteClass = await this.deleteClass(aClass.classId);
         } else if (
