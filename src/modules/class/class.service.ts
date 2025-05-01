@@ -239,6 +239,10 @@ export class ClassroomService {
     const findClass = await this.classroomRepository.findOne({
       where: { classId: classId },
     });
+    if (data.maxStudents) {
+      findClass.maxStudents = data.maxStudents;
+      await this.classroomRepository.save(findClass);
+    }
 
     const findStudents = await this.studentRepo.find({
       where: { userId: In(data.studentIdList) },
@@ -285,6 +289,54 @@ export class ClassroomService {
           }
         }
         await this.classroomRepository.save(findClass);
+      } else if (data.studentIdList.length === findClass.studentList.length) {
+        // Same length but potentially different members
+        // Find students to add (in new list but not in old list)
+        const studentsToAdd = data.studentIdList.filter(
+          (studentId) => !findClass.studentList.includes(studentId),
+        );
+
+        // Find students to remove (in old list but not in new list)
+        const studentsToRemove = findClass.studentList.filter(
+          (studentId) => !data.studentIdList.includes(studentId),
+        );
+
+        // If there are differences, update both sides
+        if (studentsToAdd.length > 0 || studentsToRemove.length > 0) {
+          // Update class's student list directly
+          findClass.studentList = data.studentIdList;
+
+          // Add class to new students' paidClass list
+          for (const studentIdToAdd of studentsToAdd) {
+            const student = await this.studentRepo.findOne({
+              where: { userId: studentIdToAdd },
+            });
+
+            if (student) {
+              if (!student.paidClass.includes(findClass.classId)) {
+                student.paidClass.push(findClass.classId);
+                await this.studentRepo.save(student);
+              }
+            }
+          }
+
+          // Remove class from removed students' paidClass list
+          for (const studentIdToRemove of studentsToRemove) {
+            const student = await this.studentRepo.findOne({
+              where: { userId: studentIdToRemove },
+            });
+
+            if (student) {
+              const classIndex = student.paidClass.indexOf(findClass.classId);
+              if (classIndex !== -1) {
+                student.paidClass.splice(classIndex, 1);
+                await this.studentRepo.save(student);
+              }
+            }
+          }
+
+          await this.classroomRepository.save(findClass);
+        }
       }
     }
 
