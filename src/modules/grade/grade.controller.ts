@@ -12,13 +12,9 @@ export class GradeController {
     return this.gradeService.viewStudentGradeInClass(classId);
   }
 
-  @Post('update/:classId/:studentId')
-  async updateGrade(
-    @Param('classId') classId: string,
-    @Param('studentId') studentId: string,
-    @Body() updateGradeDto: UpdateGradeDTO,
-  ) {
-    return this.gradeService.updateGrade(classId, studentId, updateGradeDto);
+  @Post('update')
+  async updateGrade(@Body() updateGradeDto: UpdateGradeDTO[]) {
+    return this.gradeService.updateGrade(updateGradeDto);
   }
 
   @Get('search')

@@ -1,6 +1,12 @@
-import { IsDecimal, IsOptional } from 'class-validator';
+import { IsDecimal, IsOptional, IsString } from 'class-validator';
 
 export class UpdateGradeDTO {
+  @IsString()
+  classId: string;
+
+  @IsString()
+  studentId: string;
+
   @IsDecimal()
   @IsOptional()
   assignmentScore?: number;

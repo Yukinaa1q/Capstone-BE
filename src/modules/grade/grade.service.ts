@@ -151,12 +151,13 @@ export class GradeService {
     };
   }
 
-  async updateGrade(classId: string, studentId: string, data: UpdateGradeDTO) {
-    const grade = await this.gradeRepository.findOne({
-      where: { classroomId: classId, studentId: In([studentId]) },
-    });
-
-    await this.gradeRepository.update(grade.gradeId, data);
+  async updateGrade(data: UpdateGradeDTO[]) {
+    for (const item of data) {
+      const grade = await this.gradeRepository.findOne({
+        where: { classroomId: item.classId, studentId: In([item.studentId]) },
+      });
+      await this.gradeRepository.update(grade.gradeId, item);
+    }
   }
 
   async searchStudentForGrade(search: string = '') {

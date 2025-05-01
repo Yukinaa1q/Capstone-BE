@@ -212,7 +212,7 @@ export class ClassroomService {
       });
 
       findStudents.map(async (item) => {
-        item.classes.push(newClassroom.classId);
+        item.paidClass.push(newClassroom.classId);
         await this.studentRepo.save(item);
       });
     }
@@ -224,39 +224,55 @@ export class ClassroomService {
     classId: string,
     data: UpdateClassroomDTO,
   ): Promise<Classroom> {
-    const findTutor = await this.tutorRepository.findOne({
-      where: { tutorCode: data.tutorCode },
-    });
-    const findCourse = await this.courseService.findOneCourse(data.courseCode);
-    data.tutorId = findTutor.userId;
-    data.courseId = findCourse.courseId;
-    if (data.studentIdList) {
-      const findStudents = await this.studentRepo.findBy({
-        userId: In(data.studentIdList),
-      });
-      data.students = findStudents;
-    }
+    // const findTutor = await this.tutorRepository.findOne({
+    //   where: { tutorCode: data.tutorCode },
+    // });
+    // const findCourse = await this.courseService.findOneCourse(data.courseCode);
+    // data.tutorId = findTutor.userId;
+    // data.courseId = findCourse.courseId;
+    // if (data.studentIdList) {
+    //   const findStudents = await this.studentRepo.findBy({
+    //     userId: In(data.studentIdList),
+    //   });
+    //   data.students = findStudents;
+    // }
     const findClass = await this.classroomRepository.findOne({
       where: { classId: classId },
     });
 
-    findClass.currentStudents = data.students.length;
+    findClass.currentStudents = data.studentIdList.length;
 
     const findStudents = await this.studentRepo.find({
-      where: { userId: In([data.studentIdList]) },
+      where: { userId: In(data.studentIdList) },
     });
-
-    findStudents.map(async (item) => {
-      if (!item.classes.includes(classId)) {
-        item.classes.push(classId);
-        await this.studentRepo.save(item);
+    if (data.studentIdList) {
+      if (data.studentIdList.length > findClass.studentList.length) {
+        findStudents.map(async (item) => {
+          if (!findClass.studentList.includes(item.userId)) {
+            findClass.studentList.push(item.userId);
+            item.paidClass.push(findClass.classId);
+            await this.studentRepo.save(item);
+            await this.classroomRepository.save(findClass);
+          }
+        });
+      } else if (data.studentIdList.length < findClass.studentList.length) {
+        findStudents.map(async (item) => {
+          if (!findClass.studentList.includes(item.userId)) {
+            const removeStudent = findClass.studentList.indexOf(item.userId);
+            findClass.studentList.splice(removeStudent, 1);
+            const removeClass = item.paidClass.indexOf(findClass.classId);
+            item.paidClass.splice(removeClass, 1);
+            await this.studentRepo.save(item);
+            await this.classroomRepository.save(findClass);
+          }
+        });
       }
-    });
+    }
 
-    await this.classroomRepository.save({
-      ...findClass,
-      ...data,
-    });
+    // await this.classroomRepository.save({
+    //   ...findClass,
+    //   ...data,
+    // });
     const updateClass = await this.classroomRepository.findOne({
       where: { classId: classId },
     });
