@@ -239,48 +239,54 @@ export class ClassroomService {
     const findClass = await this.classroomRepository.findOne({
       where: { classId: classId },
     });
+
     if (data.maxStudents) {
       findClass.maxStudents = data.maxStudents;
       await this.classroomRepository.save(findClass);
     }
 
-    const findStudents = await this.studentRepo.find({
-      where: { userId: In(data.studentIdList) },
-    });
-    console.log(data.studentIdList);
     if (data.studentIdList) {
-      if (data.studentIdList.length > findClass.studentList.length) {
-        findStudents.map(async (item) => {
-          if (!findClass.studentList.includes(item.userId)) {
-            findClass.currentStudents = data.studentIdList.length;
-            findClass.studentList.push(item.userId);
-            item.paidClass.push(findClass.classId);
-            await this.studentRepo.save(item);
-          }
-        });
-        await this.classroomRepository.save(findClass);
-      } else if (data.studentIdList.length < findClass.studentList.length) {
-        // Removing students
+      console.log(data.studentIdList);
+
+      // Generalized approach for all cases - additions and removals
+
+      // Find students to add (in new list but not in old list)
+      const studentsToAdd = data.studentIdList.filter(
+        (studentId) => !findClass.studentList.includes(studentId),
+      );
+
+      // Find students to remove (in old list but not in new list)
+      const studentsToRemove = findClass.studentList.filter(
+        (studentId) => !data.studentIdList.includes(studentId),
+      );
+
+      // If there are changes to be made
+      if (studentsToAdd.length > 0 || studentsToRemove.length > 0) {
+        // Update the class's student list to the new list
+        findClass.studentList = data.studentIdList;
         findClass.currentStudents = data.studentIdList.length;
 
-        // Find students to remove (those in old list but not in new list)
-        const studentsToRemove = findClass.studentList.filter(
-          (studentId) => !data.studentIdList.includes(studentId),
-        );
-
-        // Update class's student list directly with filter
-        findClass.studentList = findClass.studentList.filter((studentId) =>
-          data.studentIdList.includes(studentId),
-        );
-
-        // Remove those students
-        for (const studentIdToRemove of studentsToRemove) {
-          // Also update the student record
-          const student = await this.studentRepo.findOne({
-            where: { userId: studentIdToRemove },
+        // Add class to new students' paidClass list
+        if (studentsToAdd.length > 0) {
+          const newStudents = await this.studentRepo.find({
+            where: { userId: In(studentsToAdd) },
           });
 
-          if (student) {
+          for (const student of newStudents) {
+            if (!student.paidClass.includes(findClass.classId)) {
+              student.paidClass.push(findClass.classId);
+              await this.studentRepo.save(student);
+            }
+          }
+        }
+
+        // Remove class from removed students' paidClass list
+        if (studentsToRemove.length > 0) {
+          const removedStudents = await this.studentRepo.find({
+            where: { userId: In(studentsToRemove) },
+          });
+
+          for (const student of removedStudents) {
             const classIndex = student.paidClass.indexOf(findClass.classId);
             if (classIndex !== -1) {
               student.paidClass.splice(classIndex, 1);
@@ -288,55 +294,9 @@ export class ClassroomService {
             }
           }
         }
+
+        // Save the updated class
         await this.classroomRepository.save(findClass);
-      } else if (data.studentIdList.length === findClass.studentList.length) {
-        // Same length but potentially different members
-        // Find students to add (in new list but not in old list)
-        const studentsToAdd = data.studentIdList.filter(
-          (studentId) => !findClass.studentList.includes(studentId),
-        );
-
-        // Find students to remove (in old list but not in new list)
-        const studentsToRemove = findClass.studentList.filter(
-          (studentId) => !data.studentIdList.includes(studentId),
-        );
-
-        // If there are differences, update both sides
-        if (studentsToAdd.length > 0 || studentsToRemove.length > 0) {
-          // Update class's student list directly
-          findClass.studentList = data.studentIdList;
-
-          // Add class to new students' paidClass list
-          for (const studentIdToAdd of studentsToAdd) {
-            const student = await this.studentRepo.findOne({
-              where: { userId: studentIdToAdd },
-            });
-
-            if (student) {
-              if (!student.paidClass.includes(findClass.classId)) {
-                student.paidClass.push(findClass.classId);
-                await this.studentRepo.save(student);
-              }
-            }
-          }
-
-          // Remove class from removed students' paidClass list
-          for (const studentIdToRemove of studentsToRemove) {
-            const student = await this.studentRepo.findOne({
-              where: { userId: studentIdToRemove },
-            });
-
-            if (student) {
-              const classIndex = student.paidClass.indexOf(findClass.classId);
-              if (classIndex !== -1) {
-                student.paidClass.splice(classIndex, 1);
-                await this.studentRepo.save(student);
-              }
-            }
-          }
-
-          await this.classroomRepository.save(findClass);
-        }
       }
     }
 
