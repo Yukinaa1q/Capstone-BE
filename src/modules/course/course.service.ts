@@ -28,6 +28,7 @@ export class CourseService {
       throw new ServiceException(
         ResponseCode.DUPLICATE_COURSE,
         'Duplicate Course',
+        400,
       );
     }
     const imageUrl = await this.cloudinaryService.uploadImage(file);
