@@ -8,7 +8,6 @@ export class UpdateTutorDTO extends PartialType(CreateTutorDTO) {
   password?: string;
 }
 
-
 export class UpdateTutorProfileDTO {
   @IsOptional()
   @IsString()

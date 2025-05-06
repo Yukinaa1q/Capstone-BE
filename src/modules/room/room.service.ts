@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { CreateRoomDTO } from './dto/createRoom.dto';
 import { ViewAllRoomsDTO } from './dto/viewAllRooms.dto';
 import { Room } from '@modules/courseRegistration/entity/room.entity';
+import { ResponseCode, ServiceException } from '@common/error';
 
 @Injectable()
 export class RoomService {
@@ -13,6 +14,12 @@ export class RoomService {
   ) {}
 
   async createRoom(data: CreateRoomDTO): Promise<Room> {
+    const checkDup = await this.roomRepository.findOne({
+      where: { roomCode: data.roomCode, roomAddress: data.roomAddress },
+    });
+    if (checkDup) {
+      throw new ServiceException(ResponseCode.DUPLICATE_ROOM, 'Duplicate Room');
+    }
     const maxClasses = 2;
     const newRoom = this.roomRepository.create({
       roomCode: data.roomCode,

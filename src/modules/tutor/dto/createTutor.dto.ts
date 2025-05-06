@@ -19,4 +19,8 @@ export class CreateTutorDTO extends OmitUpdateType(Tutor, [
   @IsEmail()
   @IsNotEmpty()
   email: string;
+
+  @ApiProperty()
+  @IsString()
+  phone: string;
 }

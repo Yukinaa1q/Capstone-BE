@@ -92,6 +92,12 @@ export class TutorService {
     });
     return findTutor;
   }
+  async findOneTutorByPhone(data: string): Promise<Tutor> {
+    const findTutor = await this.tutorRepository.findOne({
+      where: { phone: data },
+    });
+    return findTutor;
+  }
 
   async getTutorDetail(userId: string): Promise<TutorDetailDTO> {
     const tutor = await this.tutorRepository.findOne({
@@ -217,6 +223,20 @@ export class TutorService {
       }
       student.tutorSSN = data.tutorSSN;
     }
+
+    if (data.phoneNumber) {
+      const existingTutor = await this.tutorRepository.findOne({
+        where: { phone: data.phoneNumber },
+      });
+      if (existingTutor && existingTutor.userId !== tutorId) {
+        throw new ServiceException(
+          ResponseCode.PHONE_EXIST,
+          'This phone has been registered',
+        );
+      }
+      student.phone = data.phoneNumber;
+    }
+
     await this.tutorRepository.save(student);
     return this.tutorRepository.findOne({ where: { userId: tutorId } });
   }

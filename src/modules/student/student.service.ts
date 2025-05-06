@@ -96,6 +96,13 @@ export class StudentService {
     return findStudent;
   }
 
+  async findOneStudentByPhone(data: string): Promise<Student> {
+    const findStudent = await this.studentRepository.findOne({
+      where: { phone: data },
+    });
+    return findStudent;
+  }
+
   async getStudentDetail(userId: string): Promise<StudentDetailDTO> {
     const student = await this.studentRepository.findOne({
       where: { userId },
@@ -336,14 +343,23 @@ export class StudentService {
       }
       student.email = data.email;
     }
+    if (data.phoneNumber) {
+      const existingStudent = await this.studentRepository.findOne({
+        where: { phone: data.phoneNumber },
+      });
+      if (existingStudent && existingStudent.userId !== studentId) {
+        throw new ServiceException(
+          ResponseCode.PHONE_EXIST,
+          'This phone has been registered',
+        );
+      }
+      student.phone = data.phoneNumber;
+    }
     if (data.name) {
       student.name = data.name;
     }
     if (data.dob) {
       student.DOB = data.dob;
-    }
-    if (data.phoneNumber) {
-      student.phone = data.phoneNumber;
     }
     await this.studentRepository.save(student);
     return this.studentRepository.findOne({ where: { userId: studentId } });

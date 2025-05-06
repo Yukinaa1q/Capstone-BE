@@ -112,7 +112,10 @@ export class ClassroomService {
     });
 
     if (existingClass) {
-      return `Tutor already has a class at ${data.studyWeek}, shift ${data.studyShift}`;
+      throw new ServiceException(
+        ResponseCode.CLASS_EXIST,
+        `Tutor already has a class at ${data.studyWeek}, shift ${data.studyShift}`,
+      );
     }
 
     // Find available room if class is offline
@@ -136,7 +139,10 @@ export class ClassroomService {
       });
 
       if (!roomie) {
-        return 'There is no room available for this offline class';
+        throw new ServiceException(
+          ResponseCode.ROOM_NOT_FOUND,
+          'No available room for this offline class',
+        );
       }
     } else {
       // Create online room through whereby service

@@ -348,6 +348,13 @@ export class CourseRegistrationService {
       where: { courseId: data.courseId },
     });
 
+    if (!tutor.isVerified) {
+      throw new ServiceException(
+        ResponseCode.TUTOR_NOT_VERIFIED,
+        'You are not verified yet, please contact academic affair department',
+      );
+    }
+
     for (const item of tutor.qualifiedSubject) {
       if (
         item.subject === course.courseSubject &&
@@ -359,7 +366,10 @@ export class CourseRegistrationService {
     }
 
     if (!checkTutorQualification) {
-      return 'You are not supposed to teach this course';
+      throw new ServiceException(
+        ResponseCode.TUTOR_NOT_QUALIFIED,
+        'You are not supposed to teach this course',
+      );
     }
 
     //check if that tutor is having another class of another subject at that same time
@@ -446,12 +456,7 @@ export class CourseRegistrationService {
         await this.roomRepository.save(roomie);
       }
 
-      if (!roomie) {
-        if (result.length === conditionCheck.length) {
-          return 'There is no room available for your offline class';
-        }
-        return 'There is no room left for your request';
-      }
+      if (!roomie) continue; // Skip the remaining code if there is no room left
 
       const classCode = await this.generateClassesCode();
       const createClassroomDTO = {
@@ -486,15 +491,19 @@ export class CourseRegistrationService {
       await this.tutorRepository.save(tutor);
       // course.classrooms.push(newClassroom);
     }
+
     if (result.length > 0) {
       let finalString = '';
       result.forEach((item) => {
-        finalString.concat(`Shift: ${item.studyShift} Day: ${item.studyWeek}`);
+        finalString.concat(
+          `(Shift: ${item.studyShift} Day: ${item.studyWeek})\n`,
+        );
       });
+      finalString.concat("The class(es) above can't be created\n");
       return finalString.concat(
         'Your others choices are accepted and class(es) created',
       );
     }
-    return 'Successfully registered classes';
+    return 'Successfully registered all classes';
   }
 }

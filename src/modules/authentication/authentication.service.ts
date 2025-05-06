@@ -52,11 +52,22 @@ export class AuthenticationService {
   }
 
   async registerNative(data: CreateStudentDTO): Promise<String> {
-    const checkDup = await this.studentService.findOneStudent(data.email);
+    const [checkDup, checkDupPhone] = await Promise.all([
+      this.studentService.findOneStudent(data.email),
+      this.studentService.findOneStudentByPhone(data.phone),
+    ]);
+    if (checkDupPhone) {
+      throw new ServiceException(
+        ResponseCode.PHONE_EXIST,
+        'This phone is registered',
+        400,
+      );
+    }
     if (checkDup) {
       throw new ServiceException(
         ResponseCode.SAME_EMAIL_ERROR,
         'This email is registered',
+        400,
       );
     }
     const newUser = await this.studentService.createStudent(data);
@@ -94,11 +105,22 @@ export class AuthenticationService {
   }
 
   async registerNativeTutor(data: CreateTutorDTO): Promise<String> {
-    const checkDup = await this.tutorService.findOneTutor(data.email);
+    const [checkDup, checkDupPhone] = await Promise.all([
+      this.tutorService.findOneTutor(data.email),
+      this.tutorService.findOneTutorByPhone(data.phone),
+    ]);
+    if (checkDupPhone) {
+      throw new ServiceException(
+        ResponseCode.PHONE_EXIST,
+        'This phone is registered',
+        400,
+      );
+    }
     if (checkDup) {
       throw new ServiceException(
         ResponseCode.SAME_EMAIL_ERROR,
         'This email is registered',
+        400,
       );
     }
     const newUser = await this.tutorService.createTutor(data);
