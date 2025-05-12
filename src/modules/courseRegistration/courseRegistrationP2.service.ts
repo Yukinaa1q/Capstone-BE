@@ -12,6 +12,7 @@ import { RoomOccupied } from './entity/roomOccupied.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ReturnClassPaginationDTO } from './dto/returnClass.dto';
 import { WherebyService } from '@services/whereby/whereby.service';
+import { Grade } from '@modules/grade/entity/grade.entity';
 
 @Injectable()
 export class CourseRegistrationP2Service {
@@ -28,6 +29,8 @@ export class CourseRegistrationP2Service {
     private readonly roomRepository: Repository<Room>,
     @InjectRepository(RoomOccupied)
     private readonly roomOccupiedRepository: Repository<RoomOccupied>,
+    @InjectRepository(Grade)
+    private readonly gradeRepository: Repository<Grade>,
     private readonly whereByService: WherebyService,
   ) {}
 
@@ -295,11 +298,15 @@ export class CourseRegistrationP2Service {
     const findStudent = await this.studentRepository
       .createQueryBuilder('student')
       .where(':classId = ANY(student.classes)', { classId })
+      .orWhere(':classId = ANY(student.paidClass)', { classId })
       .getMany();
 
     await Promise.all(
       findStudent.map(async (student) => {
         student.classes = student.classes.filter(
+          (currentClassId) => currentClassId !== classId,
+        );
+        student.paidClass = student.paidClass.filter(
           (currentClassId) => currentClassId !== classId,
         );
         return this.studentRepository.save(student);
@@ -309,9 +316,13 @@ export class CourseRegistrationP2Service {
     const findTutor = await this.tutorRepository
       .createQueryBuilder('tutor')
       .where(':classId = ANY(tutor.classList)', { classId })
+      .orWhere(':classId = ANY(tutor.paidClassList)', { classId })
       .getOne();
 
     findTutor.classList = findTutor.classList.filter(
+      (currentClassId) => currentClassId !== classId,
+    );
+    findTutor.paidClassList = findTutor.paidClassList.filter(
       (currentClassId) => currentClassId !== classId,
     );
     await this.tutorRepository.save(findTutor);
@@ -480,6 +491,7 @@ export class CourseRegistrationP2Service {
       //   where: { classes: In([aClass.classId]) },
       // });
       let classId = aClass.classId;
+
       const findStudentInClass = await this.studentRepository
         .createQueryBuilder('student')
         .where(':classId = ANY(student.classes)', { classId })
@@ -492,6 +504,10 @@ export class CourseRegistrationP2Service {
           const removeStudent = aClass.studentList.indexOf(student.userId);
           aClass.studentList.splice(removeStudent, 1);
           aClass.currentStudents = aClass.currentStudents - 1;
+          const findGrade = await this.gradeRepository.findOne({
+            where: { studentId: student.userId, classroomId: aClass.classId },
+          });
+          if (findGrade) await this.gradeRepository.delete(findGrade.gradeId);
           await this.studentRepository.save(student);
           await this.classroomRepository.save(aClass);
         }

@@ -16,6 +16,7 @@ import { Room } from '@modules/courseRegistration/entity/room.entity';
 import { WherebyService } from '@services/whereby/whereby.service';
 import { Course } from '@modules/course/entity/course.entity';
 import { generateCustomID } from '@utils';
+import { Grade } from '@modules/grade/entity/grade.entity';
 
 @Injectable()
 export class ClassroomService {
@@ -34,6 +35,8 @@ export class ClassroomService {
     private readonly wherebyService: WherebyService,
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
+    @InjectRepository(Grade)
+    private readonly gradeRepository: Repository<Grade>,
   ) {}
   async generateClassesCode(): Promise<string> {
     const lastClass = await this.classroomRepository
@@ -260,9 +263,7 @@ export class ClassroomService {
 
     if (data.studentIdList) {
       console.log(data.studentIdList);
-
       // Generalized approach for all cases - additions and removals
-
       // Find students to add (in new list but not in old list)
       const studentsToAdd = data.studentIdList.filter(
         (studentId) => !findClass.studentList.includes(studentId),
@@ -310,6 +311,17 @@ export class ClassroomService {
 
         // Save the updated class
         await this.classroomRepository.save(findClass);
+
+        const findGrade = await this.gradeRepository.find({
+          where: {
+            classroomId: findClass.classId,
+            studentId: Not(In(findClass.studentList)),
+          },
+        });
+
+        for (const deleteGrade of findGrade) {
+          await this.gradeRepository.delete(deleteGrade.gradeId);
+        }
       }
     }
 

@@ -11,6 +11,7 @@ import { Room } from '@modules/courseRegistration/entity/room.entity';
 import { RoomOccupied } from '@modules/courseRegistration/entity/roomOccupied.entity';
 import { WherebyModule } from '@services/whereby/whereby.module';
 import { Course } from '@modules/course/entity/course.entity';
+import { Grade } from '@modules/grade/entity/grade.entity';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { Course } from '@modules/course/entity/course.entity';
       Room,
       RoomOccupied,
       Course,
+      Grade
     ]),
     TutorModule,
     CourseModule,

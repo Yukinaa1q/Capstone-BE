@@ -188,7 +188,7 @@ export class TutorService {
       where: { userId: tutorId },
     });
     if (!student) {
-      throw new NotFoundException('Student not found');
+      throw new NotFoundException('Tutor not found');
     }
     if (data.email) {
       const existingStudent = await this.tutorRepository.findOne({
@@ -208,9 +208,7 @@ export class TutorService {
     if (data.dob) {
       student.DOB = data.dob;
     }
-    if (data.phoneNumber) {
-      student.phone = data.phoneNumber;
-    }
+
     if (data.tutorSSN) {
       const existingTutor = await this.tutorRepository.findOne({
         where: { tutorSSN: data.tutorSSN },

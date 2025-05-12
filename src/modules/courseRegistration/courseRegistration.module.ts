@@ -15,6 +15,7 @@ import { CourseRegistrationP2Service } from './courseRegistrationP2.service';
 import { Phase2RegisterController } from './courseRegistrationP2.controller';
 import { RoomOccupied } from './entity/roomOccupied.entity';
 import { WherebyModule } from '@services/whereby/whereby.module';
+import { Grade } from '@modules/grade/entity/grade.entity';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { WherebyModule } from '@services/whereby/whereby.module';
       Classroom,
       Room,
       RoomOccupied,
+      Grade,
     ]),
     CourseModule,
     WherebyModule,
