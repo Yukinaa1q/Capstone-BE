@@ -392,6 +392,7 @@ export class ClassroomService {
     result.studyRoom = findClass.classRoom;
     result.classStudents = findClass.currentStudents;
     result.classMaxStudents = findClass.maxStudents;
+    result.classUrl = findClass.room.onlineRoom ?? findClass.room.roomCode;
     result.studentList = [];
     for (const student of findClass.studentList) {
       const findStudent = await this.studentRepo.findOne({

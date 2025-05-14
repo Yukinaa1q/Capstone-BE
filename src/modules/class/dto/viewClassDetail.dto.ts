@@ -85,4 +85,7 @@ export class ViewClassDetailDTO {
 
   @IsArray()
   studentList: studentDetail[];
+
+  @IsString()
+  classUrl: string;
 }

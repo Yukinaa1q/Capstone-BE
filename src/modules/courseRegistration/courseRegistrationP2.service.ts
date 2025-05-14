@@ -159,6 +159,7 @@ export class CourseRegistrationP2Service {
       where: { userId: userId },
     });
     let abc = findTutor.classes;
+    let xyz = findTutor.paidClass;
     const query = this.classroomRepository
       .createQueryBuilder('classroom')
       .leftJoinAndSelect('classroom.course', 'course')
@@ -166,6 +167,11 @@ export class CourseRegistrationP2Service {
     if (abc.length > 0) {
       query.where('classroom.classId NOT IN (:...abc)', {
         abc,
+      });
+    }
+    if (xyz.length > 0) {
+      query.andWhere('classroom.classId NOT IN (:...xyz)', {
+        xyz,
       });
     } else {
       query.where('1 = 1'); // Always true condition
