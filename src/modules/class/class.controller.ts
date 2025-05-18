@@ -11,6 +11,8 @@ import { UpdateClassroomDTO } from './dto/updateClassroom.dto';
 import { ViewAllClassroomDTO } from './dto/viewAllClassroom.dto';
 import { ViewClassDetailDTO } from './dto/viewClassDetail.dto';
 import { Classroom } from './entity/class.entity';
+import { Tutor } from '@modules/tutor/entity/tutor.entity';
+import { GetTutorAvailabilityDTO } from './dto/getTutorAvalability.dto';
 
 @ApiAuthController('class')
 export class ClassroomController {
@@ -31,6 +33,17 @@ export class ClassroomController {
     @Param('id') id: string,
   ): Promise<Classroom> {
     return this.classroomService.updateClass(id, data);
+  }
+
+  @Post('check-tutor-availability')
+  @ApiResponseArray(Tutor)
+  async checkTutorAvailability(
+    @Body() data: GetTutorAvailabilityDTO,
+  ): Promise<Tutor[]> {
+    return this.classroomService.checkTutorAvailability(
+      data.studyWeek,
+      data.studyShift,
+    );
   }
 
   @Get('view-class')

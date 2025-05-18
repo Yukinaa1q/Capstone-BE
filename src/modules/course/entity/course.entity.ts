@@ -1,4 +1,5 @@
 import { Classroom } from '@modules/class/entity/class.entity';
+import { ClassRequest } from '@modules/courseRegistration/entity/requestClassCreation.entity';
 import {
   ApiHideProperty,
   ApiProperty,
@@ -87,10 +88,14 @@ export class Course {
   @IsNotEmpty()
   courseDescription: string;
 
-  @Column({ type: 'jsonb', nullable: true })
-  @ApiProperty({ type: () => [CourseContentItem] })
-  @IsArray()
-  courseOutline: CourseContentItem[];
+  @Column({ default: 'none' })
+  @ApiProperty()
+  @IsString()
+  courseOutline: string;
+
+  @ApiHideProperty()
+  @OneToMany(() => ClassRequest, (classRequest) => classRequest.course)
+  classRequest: ClassRequest[];
 
   @ApiHideProperty()
   @OneToMany(() => Classroom, (classroom) => classroom.course)

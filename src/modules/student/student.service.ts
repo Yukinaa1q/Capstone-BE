@@ -11,6 +11,7 @@ import { Classroom } from '@modules/class/entity/class.entity';
 import { ResponseCode, ServiceException } from '@common/error';
 import { addDays, addMonths } from 'date-fns';
 import { UpdateStudentProfileDTO } from './dto/updateStudentProfile.dto';
+import { Stat } from '@modules/stats/entity/stat.entity';
 
 @Injectable()
 export class StudentService {
@@ -19,6 +20,8 @@ export class StudentService {
     private readonly studentRepository: Repository<Student>,
     @InjectRepository(Classroom)
     private readonly classroomRepository: Repository<Classroom>,
+    @InjectRepository(Stat)
+    private readonly statRepository: Repository<Stat>,
   ) {}
 
   async getNextStudentID(): Promise<string> {
@@ -375,6 +378,19 @@ export class StudentService {
     }
     findStudent.classes = [];
     await this.studentRepository.save(findStudent);
+
+    for (const item of findStudent.paidClass) {
+      const findClass = await this.classroomRepository.findOne({
+        where: { classId: item },
+      });
+      const newStat = this.statRepository.create({
+        userId: userId,
+        classId: item,
+        type: 'income',
+        value: findClass.course.coursePrice,
+      });
+      await this.statRepository.save(newStat);
+    }
     return 'You have successfully paid the fee';
   }
 

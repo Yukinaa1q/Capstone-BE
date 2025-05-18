@@ -1,5 +1,6 @@
 import { User } from '@common/entity';
 import { Classroom } from '@modules/class/entity/class.entity';
+import { ClassRequest } from '@modules/courseRegistration/entity/requestClassCreation.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsBoolean, IsString } from 'class-validator';
 import { Column, Entity, OneToMany } from 'typeorm';
@@ -41,6 +42,9 @@ export class Tutor extends User {
 
   @OneToMany(() => Classroom, (classroom) => classroom.tutor)
   classrooms: Classroom[];
+
+  @OneToMany(() => ClassRequest, (classRequest) => classRequest.tutor)
+  classRequest: ClassRequest[];
 
   @Column({ default: [], type: 'text', array: true })
   @ApiProperty()

@@ -20,6 +20,8 @@ import {
   UnregisterTutorP1,
 } from './dto';
 import { CurrentUser } from '@common/decorator';
+import { ClassRequestDTO } from './dto/newClassRequest.dto';
+import { CreateClassroomDTO } from '@modules/class/dto/createClassroom.dto';
 
 @ApiAuthController('phase1_register')
 export class Phase1RegisterController {
@@ -108,6 +110,25 @@ export class Phase1RegisterController {
     @Body() data: NewTutorRegDTO,
   ): Promise<string> {
     return this.registrationService.newTutorReg(user.userId, data);
+  }
+
+  @Post('new-class-request')
+  @ApiResponseString()
+  async newClassRequest(
+    @CurrentUser() user: any,
+    @Body() data: ClassRequestDTO,
+  ) {
+    return this.registrationService.newTutorRequestClass(user.userId, data);
+  }
+
+  @Post('new-academic-create-class/:create/:requestId')
+  @ApiResponseString()
+  async newAcademicCreate(
+    @Param('create') create: boolean,
+    @Param('requestId') requestId: string,
+    @Body() data: CreateClassroomDTO,
+  ) {
+    return this.registrationService.acceptClassRequest(create, requestId, data);
   }
 
   @Delete('student/delete')

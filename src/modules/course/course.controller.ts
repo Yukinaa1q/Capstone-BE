@@ -14,9 +14,13 @@ import {
   ParseFilePipe,
   Post,
   UploadedFile,
+  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { CreateCourseDTO } from './dto/createCourse.dto';
 import { FileUploadDto } from './dto/fileUpload.dto';
@@ -29,7 +33,12 @@ export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
   @Post('create-course')
-  @UseInterceptors(FileInterceptor('courseImage'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'courseImage', maxCount: 1 },
+      { name: 'courseOutline', maxCount: 1 },
+    ]),
+  )
   @ApiBody({
     description: 'Avatar file to be uploaded',
     schema: {
@@ -45,6 +54,7 @@ export class CourseController {
         courseDescription: { type: 'string' },
         courseOutline: {
           type: 'string',
+          format: 'binary',
         },
       },
     },
@@ -52,15 +62,31 @@ export class CourseController {
   @ApiConsumes('multipart/form-data')
   @ApiResponseObject(Course)
   async createCourse(
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 15 })],
-      }),
-    )
-    courseImage: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      courseImage: Express.Multer.File[];
+      courseOutline: Express.Multer.File[];
+    },
     @Body() data: CreateCourseDTO,
   ) {
-    return this.courseService.createCourse(courseImage, data);
+    new ParseFilePipe({
+      validators: [
+        new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 15 }), // 15MB
+      ],
+    }).transform(files.courseImage?.[0]);
+
+    if (files.courseOutline?.[0]) {
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 15 }), // 15MB
+        ],
+      }).transform(files.courseOutline[0]);
+    }
+    return this.courseService.createCourse(
+      files.courseImage?.[0],
+      files.courseOutline?.[0],
+      data,
+    );
   }
 
   @Post('update-course/:id')
@@ -90,6 +116,26 @@ export class CourseController {
     @Param('id') id: string,
   ) {
     return this.courseService.updateImage(id, file);
+  }
+
+  @Post('update-course-outline/:id')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiBody({
+    description: 'Modal file to be uploaded',
+    type: FileUploadDto,
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiResponseString()
+  async updateOutline(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 15 })],
+      }),
+    )
+    file: Express.Multer.File,
+    @Param('id') id: string,
+  ) {
+    return this.courseService.updateCourseOutline(id, file);
   }
 
   @Get('all-course')

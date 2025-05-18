@@ -11,4 +11,7 @@ export class CreateCourseDTO extends OmitUpdateType(Course, ['courseId']) {
 
   @IsString()
   courseTitle: string;
+
+  @IsString()
+  courseSubject: string;
 }

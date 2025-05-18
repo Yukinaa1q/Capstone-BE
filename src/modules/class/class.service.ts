@@ -47,31 +47,27 @@ export class ClassroomService {
     return generateCustomID('CL', lastNumber + 1);
   }
 
-  // async createClass(data: CreateClassroomDTO): Promise<Classroom> {
-  //   const checkDup = await this.findOneClass(data.classCode);
-  //   if (checkDup) {
-  //     throw new ServiceException(
-  //       ResponseCode.DUPLICATE_CLASS,
-  //       'Duplicate Class',
-  //     );
-  //   }
-  //   const findTutor = await this.tutorRepository.findOne({
-  //     where: { tutorCode: data.tutorCode },
-  //   });
-  //   const findCourse = await this.courseService.findOneCourse(data.courseCode);
-  //   const findStudents = await this.studentRepo.findBy({
-  //     userId: In(data.studentIdList),
-  //   });
-  //   const newClass = this.classroomRepository.create({
-  //     tutorId: findTutor.userId,
-  //     courseId: findCourse.courseId,
-  //     students: findStudents,
-  //     currentStudents: findStudents.length,
-  //     ...data,
-  //   });
-  //   await this.classroomRepository.save(newClass);
-  //   return newClass;
-  // }
+  async checkTutorAvailability(
+    studyWeek: string,
+    studyShift: string,
+  ): Promise<Tutor[]> {
+    const findTutor = await this.tutorRepository.find();
+    let result: Tutor[] = [];
+    for (const tutor of findTutor) {
+      const existingClass = await this.classroomRepository.findOne({
+        where: {
+          studyWeek: studyWeek,
+          studyShift: studyShift,
+          tutorId: tutor.userId,
+        },
+      });
+      if (!existingClass) {
+        result.push(tutor);
+      }
+    }
+    return result;
+  }
+
   async createClass(data: CreateClassroomDTO): Promise<Classroom | string> {
     // Check if class code already exists
     // const checkDup = await this.findOneClass(data.classCode);

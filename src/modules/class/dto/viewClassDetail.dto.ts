@@ -1,4 +1,3 @@
-import { CourseContentItem } from '@modules/course/entity/course.entity';
 import {
   IsArray,
   IsBoolean,
@@ -51,7 +50,7 @@ export class ViewClassDetailDTO {
   courseDescription: string;
 
   @IsArray()
-  courseOutline: CourseContentItem[];
+  courseOutline: string;
 
   @IsNumber()
   coursePrice: number;

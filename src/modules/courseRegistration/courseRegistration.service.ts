@@ -22,6 +22,9 @@ import { Tutor } from '@modules/tutor/entity/tutor.entity';
 import { generateCustomID } from '@utils';
 import { RoomOccupied } from './entity/roomOccupied.entity';
 import { WherebyService } from '@services/whereby/whereby.service';
+import { ClassRequestDTO } from './dto/newClassRequest.dto';
+import { ClassRequest } from './entity/requestClassCreation.entity';
+import { CreateClassroomDTO } from '@modules/class/dto/createClassroom.dto';
 
 export class PaginationMeta {
   totalItems: number;
@@ -48,6 +51,8 @@ export class CourseRegistrationService {
     private readonly tutorRepository: Repository<Tutor>,
     @InjectRepository(RoomOccupied)
     private readonly roomOccupiedRepository: Repository<RoomOccupied>,
+    @InjectRepository(ClassRequest)
+    private readonly classRequestRepository: Repository<ClassRequest>,
     private readonly wherebyService: WherebyService,
   ) {}
 
@@ -505,5 +510,208 @@ export class CourseRegistrationService {
       );
     }
     return 'Successfully registered all classes';
+  }
+
+  async newTutorRequestClass(userId: string, data: ClassRequestDTO) {
+    //check tutor qualification
+    let checkTutorQualification = false;
+
+    const tutor = await this.tutorRepository.findOne({
+      where: { userId },
+    });
+
+    const course = await this.courseRepository.findOne({
+      where: { courseId: data.courseId },
+    });
+
+    if (!tutor.isVerified) {
+      throw new ServiceException(
+        ResponseCode.TUTOR_NOT_VERIFIED,
+        'You are not verified yet, please contact academic affair department',
+      );
+    }
+
+    for (const item of tutor.qualifiedSubject) {
+      if (
+        item.subject === course.courseSubject &&
+        parseInt(item.level) >= parseInt(course.courseLevel)
+      ) {
+        checkTutorQualification = true;
+        break;
+      }
+    }
+
+    if (!checkTutorQualification) {
+      throw new ServiceException(
+        ResponseCode.TUTOR_NOT_QUALIFIED,
+        'You are not supposed to teach this course',
+      );
+    }
+
+    // Check if the tutor already has a class at the given time
+    const existingClass = await this.classRepository.findOne({
+      where: {
+        studyWeek: data.studyWeek,
+        studyShift: data.studyShift,
+        tutorId: tutor.userId,
+      },
+    });
+
+    if (existingClass) {
+      throw new ServiceException(
+        ResponseCode.CLASS_EXIST,
+        `Tutor already has a class at ${data.studyWeek}, shift ${data.studyShift}`,
+      );
+    }
+
+    //check if have room or not
+    if (!data.isOnline) {
+      console.log('Offline class detected');
+      const occupiedRooms = await this.roomOccupiedRepository.find({
+        where: {
+          studyWeek: data.studyWeek,
+          studyShift: data.studyShift,
+        },
+        select: ['roomId'], // Only get room IDs
+      });
+
+      const roomie = await this.roomRepository.findOne({
+        where: {
+          roomId: Not(In(occupiedRooms.map((occ) => occ.roomId))),
+          onlineRoom: IsNull(),
+        },
+      });
+
+      if (!roomie) {
+        throw new ServiceException(
+          ResponseCode.ROOM_NOT_FOUND,
+          `There is no room left for your request`,
+        );
+      }
+    }
+
+    // create request
+    const newClassRequest = this.classRequestRepository.create({
+      tutor: tutor,
+      course: course,
+      studyWeek: data.studyWeek,
+      studyShift: data.studyShift,
+      isOnline: data.isOnline,
+    });
+
+    await this.classRequestRepository.save(newClassRequest);
+
+    return 'Your class request is successfully created';
+  }
+
+  async acceptClassRequest(
+    create: boolean,
+    requestId: string,
+    data: CreateClassroomDTO,
+  ) {
+    if (create) {
+      let roomie: Room;
+      const tutor = await this.tutorRepository.findOne({
+        where: { tutorCode: data.tutorCode },
+      });
+
+      const course = await this.courseService.findOneCourse(data.courseCode);
+
+      if (!data.isOnline) {
+        console.log('Offline class being created');
+        const occupiedRooms = await this.roomOccupiedRepository.find({
+          where: {
+            studyWeek: data.studyWeek,
+            studyShift: data.studyShift,
+          },
+          select: ['roomId'],
+        });
+
+        roomie = await this.roomRepository.findOne({
+          where: {
+            roomId: Not(In(occupiedRooms.map((occ) => occ.roomId))),
+            onlineRoom: IsNull(),
+          },
+        });
+
+        if (!roomie) {
+          throw new ServiceException(
+            ResponseCode.ROOM_NOT_FOUND,
+            'No available room for this offline class',
+          );
+        }
+      } else {
+        // Create online room through whereby service
+
+        const url = await this.wherebyService.createMeetingLink(
+          course.courseTitle,
+          course.duration,
+        );
+        roomie = this.roomRepository.create({
+          roomCode: 'Online room',
+          onlineRoom: url.data.hostRoomUrl,
+          roomAddress: url.data.meetingId,
+          occupied: true,
+          classesIdList: [],
+        });
+        await this.roomRepository.save(roomie);
+      }
+
+      // Create new classroom
+      const classCode = await this.generateClassesCode();
+      const newClassroom = this.classRepository.create({
+        courseTitle: course.courseTitle,
+        courseCode: course.courseCode,
+        maxStudents: data.maxStudents || 30,
+        classCode: classCode,
+        studyWeek: data.studyWeek,
+        studyShift: data.studyShift,
+        isOnline: data.isOnline,
+        courseId: course.courseId,
+        classRoom: roomie.roomCode,
+        currentStudents: 0,
+        tutorId: tutor.userId,
+        roomId: roomie.roomId,
+        status: 'pending',
+        startDate: new Date().toISOString(),
+        endDate: addMonths(new Date(), course.duration).toISOString(),
+      });
+
+      await this.classRepository.save(newClassroom);
+
+      // Update related entities
+      course.classes.push(newClassroom.classId);
+      await this.courseRepository.save(course);
+
+      roomie.classesIdList.push(newClassroom.classId);
+      await this.roomRepository.save(roomie);
+
+      const newOccupied = this.roomOccupiedRepository.create({
+        room: roomie,
+        studyShift: data.studyShift,
+        studyWeek: data.studyWeek,
+      });
+
+      await this.roomOccupiedRepository.save(newOccupied);
+
+      tutor.classList.push(newClassroom.classId);
+      await this.tutorRepository.save(tutor);
+
+      //delete request
+      const classRequest = await this.classRequestRepository.findOne({
+        where: { requestId: requestId },
+      });
+      await this.classRequestRepository.delete(classRequest.requestId);
+
+      return 'The class is created ';
+    } else {
+      //delete request
+      const classRequest = await this.classRequestRepository.findOne({
+        where: { requestId: requestId },
+      });
+      await this.classRequestRepository.delete(classRequest.requestId);
+
+      return 'You declined the class request ';
+    }
   }
 }

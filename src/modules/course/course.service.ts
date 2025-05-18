@@ -8,6 +8,8 @@ import { Course } from './entity/course.entity';
 import { CreateCourseDTO } from './dto/createCourse.dto';
 import { ViewAllCourseDTO } from './dto/viewAllCourse.dto';
 import { Classroom } from '@modules/class/entity/class.entity';
+import { generateCustomID } from '@utils';
+import { CourseSubject } from './course.enum';
 
 @Injectable()
 export class CourseService {
@@ -18,28 +20,36 @@ export class CourseService {
     @InjectRepository(Classroom)
     private readonly classRepository: Repository<Classroom>,
   ) {}
-
+  async generateCoursesCode(subject: string): Promise<string> {
+    const lastCourse = await this.courseRepository
+      .createQueryBuilder('course')
+      .where('course.subject = :subject', { subject })
+      .orderBy('course.courseCode', 'DESC')
+      .getOne();
+    const lastNumber = lastCourse
+      ? parseInt(lastCourse.courseCode.slice(2))
+      : 0;
+    const subjectPrefix = CourseSubject[subject as keyof typeof CourseSubject];
+    return generateCustomID(subjectPrefix, lastNumber + 1);
+  }
   async createCourse(
     file: Express.Multer.File,
+    file2: Express.Multer.File,
     data: CreateCourseDTO,
   ): Promise<Course> {
-    const checkDup = await this.findOneCourse(data.courseCode);
-    if (checkDup) {
-      throw new ServiceException(
-        ResponseCode.DUPLICATE_COURSE,
-        'Duplicate Course',
-        400,
-      );
-    }
+    const courseCode = await this.generateCoursesCode(data.courseSubject);
+
     const imageUrl = await this.cloudinaryService.uploadImage(file);
+
+    const courseOutline = await this.cloudinaryService.uploadPDF(file2);
 
     const newCourse = await this.courseRepository.create({
       courseImage: imageUrl,
+      courseOutline: courseOutline,
+      courseCode: courseCode,
       ...data,
     });
-    if (typeof newCourse.courseOutline === 'string') {
-      newCourse.courseOutline = JSON.parse(newCourse.courseOutline);
-    }
+
     await this.courseRepository.save(newCourse);
 
     return newCourse;
@@ -69,11 +79,27 @@ export class CourseService {
     return 'Your courseImage was changed successfully';
   }
 
+  async updateCourseOutline(
+    courseId: string,
+    file: Express.Multer.File,
+  ): Promise<string> {
+    const findCourse = await this.courseRepository.findOne({
+      where: { courseId: courseId },
+    });
+    const newCourseOutlineUrl = await this.cloudinaryService.uploadPDF(file);
+    await this.cloudinaryService.deletePDF(findCourse.courseOutline);
+    await this.courseRepository.update(courseId, {
+      courseOutline: newCourseOutlineUrl,
+    });
+    return 'Your courseOutline was changed successfully';
+  }
+
   async deleteCourse(courseId: string): Promise<string> {
     const findCourse = await this.courseRepository.findOne({
       where: { courseId: courseId },
     });
     await this.cloudinaryService.deleteImage(findCourse.courseImage);
+    await this.cloudinaryService.deletePDF(findCourse.courseOutline);
     const deleteCourse = await this.courseRepository.delete(courseId);
 
     return 'The course is successfully deleted';
