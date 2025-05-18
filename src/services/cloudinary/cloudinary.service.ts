@@ -24,7 +24,7 @@ export class CloudinaryService {
       const options = {
         folder: 'courses',
         resource_type: 'raw', // Explicitly treat as raw file
-        format: 'pdf', // Optional: force PDF format
+        // format: 'pdf', // Optional: force PDF format
       };
       this.cloudinaryInstance.uploader
         .upload_stream(options, (error, result: UploadApiResponse) => {

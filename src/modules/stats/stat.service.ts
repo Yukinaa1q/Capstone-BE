@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, Raw, Repository } from 'typeorm';
 import { Stat } from './entity/stat.entity';
 import { Tutor } from '@modules/tutor/entity/tutor.entity';
 import { Classroom } from '@modules/class/entity/class.entity';
@@ -33,6 +33,13 @@ export class StatService {
         const findClass = await this.classRepository.findBy({
           classId: In(item.paidClassList),
           status: In(['payment', 'open']),
+          startDate: Raw(
+            (alias) =>
+              `EXTRACT(MONTH FROM TO_DATE(${alias}, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')) = :month`,
+            {
+              month: month,
+            },
+          ),
         });
         if (findClass) {
           for (const classs of findClass) {
@@ -47,7 +54,9 @@ export class StatService {
       }
       const stats = await this.statRepository
         .createQueryBuilder('stat')
-        .where('EXTRACT(MONTH FROM stat.date) = :month', { month: month })
+        .where('EXTRACT(MONTH FROM stat.createdTime) = :month', {
+          month: month,
+        })
         .getMany();
 
       for (const item of stats) {

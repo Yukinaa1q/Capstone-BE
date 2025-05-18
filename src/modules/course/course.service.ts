@@ -23,7 +23,7 @@ export class CourseService {
   async generateCoursesCode(subject: string): Promise<string> {
     const lastCourse = await this.courseRepository
       .createQueryBuilder('course')
-      .where('course.subject = :subject', { subject })
+      .where('course.courseSubject = :subject', { subject })
       .orderBy('course.courseCode', 'DESC')
       .getOne();
     const lastNumber = lastCourse
@@ -99,7 +99,8 @@ export class CourseService {
       where: { courseId: courseId },
     });
     await this.cloudinaryService.deleteImage(findCourse.courseImage);
-    await this.cloudinaryService.deletePDF(findCourse.courseOutline);
+    if (findCourse.courseOutline !== 'none')
+      await this.cloudinaryService.deletePDF(findCourse.courseOutline);
     const deleteCourse = await this.courseRepository.delete(courseId);
 
     return 'The course is successfully deleted';
