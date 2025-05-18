@@ -10,6 +10,7 @@ import { AdminModule } from './admin';
 import { StaffModule } from './staff';
 import { RoomModule } from './room/room.module';
 import { GradeModule } from './grade/grade.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { GradeModule } from './grade/grade.module';
     StaffModule,
     RoomModule,
     GradeModule,
+    NotificationModule,
   ],
 })
 export class AppFeaturesModule {}
