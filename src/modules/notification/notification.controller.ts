@@ -1,7 +1,7 @@
-import { Sse } from '@nestjs/common';
+import { Get, Param, Post, Sse } from '@nestjs/common';
 import { ApiController } from '@services/openApi';
 import { interval, map, Observable } from 'rxjs';
-import { MessageEvent } from './dto/NotificationMessage.dto';
+import { MessageEvent } from './interface/NotificationMessage.dto';
 import { NotificationService } from './notification.service';
 
 @ApiController('noti')
@@ -10,10 +10,32 @@ export class NotificationController {
   @Sse('sse')
   sendNotification(): Observable<MessageEvent> {
     console.log('SSE connection established');
-    return interval(1000).pipe(
+    return interval(2000).pipe(
       map(() => {
-        return this.notificationService.sendNotification();
+        let sendData: MessageEvent;
+        this.notificationService
+          .pingNotification()
+          .then((data) => (sendData = data));
+        return sendData;
       }),
     );
+  }
+
+  @Get('/:userId')
+  getUserNotification(@Param('userId') userId: string) {
+    return this.notificationService.getAllNotifications(userId);
+  }
+
+  @Post('/markAsRead/:userId/:notificationId')
+  markAsRead(
+    @Param('notificationId') notificationId: string,
+    @Param('userId') userId: string,
+  ) {
+    return this.notificationService.markAsRead(notificationId, userId);
+  }
+
+  @Post('/markAllAsRead/:userId')
+  markAsReadAll(@Param('userId') userId: string) {
+    return this.notificationService.markAsReadAll(userId);
   }
 }
