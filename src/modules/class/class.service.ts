@@ -217,7 +217,7 @@ export class ClassroomService {
       });
 
       findStudents.map(async (item) => {
-        item.paidClass.push(newClassroom.classId);
+        item.classes.push(newClassroom.classId);
         await this.studentRepo.save(item);
       });
     }
@@ -283,8 +283,8 @@ export class ClassroomService {
           });
 
           for (const student of newStudents) {
-            if (!student.paidClass.includes(findClass.classId)) {
-              student.paidClass.push(findClass.classId);
+            if (!student.classes.includes(findClass.classId)) {
+              student.classes.push(findClass.classId);
               await this.studentRepo.save(student);
             }
           }
@@ -297,9 +297,9 @@ export class ClassroomService {
           });
 
           for (const student of removedStudents) {
-            const classIndex = student.paidClass.indexOf(findClass.classId);
+            const classIndex = student.classes.indexOf(findClass.classId);
             if (classIndex !== -1) {
-              student.paidClass.splice(classIndex, 1);
+              student.classes.splice(classIndex, 1);
               await this.studentRepo.save(student);
             }
           }
@@ -307,17 +307,6 @@ export class ClassroomService {
 
         // Save the updated class
         await this.classroomRepository.save(findClass);
-
-        const findGrade = await this.gradeRepository.find({
-          where: {
-            classroomId: findClass.classId,
-            studentId: Not(In(findClass.studentList)),
-          },
-        });
-
-        for (const deleteGrade of findGrade) {
-          await this.gradeRepository.delete(deleteGrade.gradeId);
-        }
       }
     }
 
@@ -390,6 +379,7 @@ export class ClassroomService {
     result.classMaxStudents = findClass.maxStudents;
     result.classUrl = findClass.room.onlineRoom ?? findClass.room.roomCode;
     result.studentList = [];
+    result.status = findClass.status;
     for (const student of findClass.studentList) {
       const findStudent = await this.studentRepo.findOne({
         where: { userId: student },

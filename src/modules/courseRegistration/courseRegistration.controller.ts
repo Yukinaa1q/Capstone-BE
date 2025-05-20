@@ -1,3 +1,6 @@
+import { CurrentUser } from '@common/decorator';
+import { CreateClassroomDTO } from '@modules/class/dto/createClassroom.dto';
+import { Body, Delete, Get, Param, Post, Query } from '@nestjs/common';
 import {
   ApiAuthController,
   ApiResponseArray,
@@ -8,7 +11,6 @@ import {
   CourseRegistrationService,
   PaginationMeta,
 } from './courseRegistration.service';
-import { Body, Delete, Get, Param, Post, Query } from '@nestjs/common';
 import {
   CourseRegP1DTO,
   CourseUnRegP1DTO,
@@ -19,9 +21,6 @@ import {
   UnregisterStudentP1,
   UnregisterTutorP1,
 } from './dto';
-import { CurrentUser } from '@common/decorator';
-import { ClassRequestDTO } from './dto/newClassRequest.dto';
-import { CreateClassroomDTO } from '@modules/class/dto/createClassroom.dto';
 
 @ApiAuthController('phase1_register')
 export class Phase1RegisterController {
@@ -116,7 +115,7 @@ export class Phase1RegisterController {
   @ApiResponseString()
   async newClassRequest(
     @CurrentUser() user: any,
-    @Body() data: ClassRequestDTO,
+    @Body() data: NewTutorRegDTO,
   ) {
     return this.registrationService.newTutorRequestClass(user.userId, data);
   }
@@ -124,11 +123,22 @@ export class Phase1RegisterController {
   @Post('new-academic-create-class/:create/:requestId')
   @ApiResponseString()
   async newAcademicCreate(
-    @Param('create') create: boolean,
+    @Param('create') create: string,
     @Param('requestId') requestId: string,
-    @Body() data: CreateClassroomDTO,
+    @Body() data?: CreateClassroomDTO,
+    @Body('reason') reason?: string,
   ) {
-    return this.registrationService.acceptClassRequest(create, requestId, data);
+    return this.registrationService.acceptClassRequest(
+      create,
+      requestId,
+      data,
+      reason,
+    );
+  }
+
+  @Get('class-request')
+  async viewClassRequest() {
+    return this.registrationService.viewRequestClasses();
   }
 
   @Delete('student/delete')

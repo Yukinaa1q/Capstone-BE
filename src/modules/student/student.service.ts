@@ -275,6 +275,7 @@ export class StudentService {
           courseImg: item.course.courseImage,
           classId: item.classId,
           classUrl: item.room.onlineRoom || 'None',
+          status: item.status,
         }),
       );
     }
@@ -289,6 +290,7 @@ export class StudentService {
           courseImg: item.course.courseImage,
           classId: item.classId,
           classUrl: item.room.onlineRoom || 'None',
+          status: item.status,
         }),
       );
     }
@@ -368,18 +370,55 @@ export class StudentService {
     return this.studentRepository.findOne({ where: { userId: studentId } });
   }
 
-  async classPayment(userId: string): Promise<string> {
+  async filterClassPayment(userId: string) {
+    const findStudent = await this.studentRepository.findOne({
+      where: { userId },
+    });
+    const findClasses = await this.classroomRepository.findBy({
+      classId: In(findStudent.classes),
+      status: 'payment',
+    });
+    const result = [];
+    for (const item of findClasses) {
+      result.push({
+        classId: item.classId,
+        classCode: item.classCode,
+        registrationStartDate: new Date(item.startDate).toLocaleDateString(),
+        registrationEndDate: addDays(
+          new Date(item.startDate),
+          10,
+        ).toLocaleDateString(),
+        studyStartDate: addDays(
+          new Date(item.startDate),
+          11,
+        ).toLocaleDateString(),
+        studyEndDate: addMonths(
+          addDays(new Date(item.startDate), 11),
+          item.course.duration,
+        ).toLocaleDateString(),
+        currentStudents: item.currentStudents,
+        maxStudents: item.maxStudents,
+        courseTitle: item.courseTitle,
+        courseCode: item.courseCode,
+        courseId: item.courseId,
+        coursePrice: item.course.coursePrice,
+        courseImage: item.course.courseImage,
+        tutor: item.tutor.name,
+      });
+    }
+    return result;
+  }
+
+  async classPayment(userId: string, classes: string[]): Promise<string> {
     const findStudent = await this.studentRepository.findOne({
       where: { userId },
     });
 
-    for (const item of findStudent.classes) {
+    for (const item of classes) {
       findStudent.paidClass.push(item);
     }
-    findStudent.classes = [];
-    await this.studentRepository.save(findStudent);
 
-    for (const item of findStudent.paidClass) {
+    for (const item of classes) {
       const findClass = await this.classroomRepository.findOne({
         where: { classId: item },
       });
@@ -391,6 +430,10 @@ export class StudentService {
       });
       await this.statRepository.save(newStat);
     }
+    findStudent.classes = findStudent.classes.filter(
+      (item) => !findStudent.paidClass.includes(item),
+    );
+    await this.studentRepository.save(findStudent);
     return 'You have successfully paid the fee';
   }
 

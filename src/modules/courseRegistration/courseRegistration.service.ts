@@ -512,7 +512,7 @@ export class CourseRegistrationService {
     return 'Successfully registered all classes';
   }
 
-  async newTutorRequestClass(userId: string, data: ClassRequestDTO) {
+  async newTutorRequestClass(userId: string, data: NewTutorRegDTO) {
     //check tutor qualification
     let checkTutorQualification = false;
 
@@ -548,68 +548,92 @@ export class CourseRegistrationService {
       );
     }
 
-    // Check if the tutor already has a class at the given time
-    const existingClass = await this.classRepository.findOne({
-      where: {
-        studyWeek: data.studyWeek,
-        studyShift: data.studyShift,
-        tutorId: tutor.userId,
-      },
-    });
+    const failRequest = [];
 
-    if (existingClass) {
-      throw new ServiceException(
-        ResponseCode.CLASS_EXIST,
-        `Tutor already has a class at ${data.studyWeek}, shift ${data.studyShift}`,
-      );
-    }
-
-    //check if have room or not
-    if (!data.isOnline) {
-      console.log('Offline class detected');
-      const occupiedRooms = await this.roomOccupiedRepository.find({
+    for (const request of data.registrationList) {
+      // Check if the request is duplicated
+      const duplicateRequest = await this.classRequestRepository.findOne({
         where: {
-          studyWeek: data.studyWeek,
-          studyShift: data.studyShift,
+          studyWeek: request.studyWeek,
+          studyShift: request.studyShift,
+          tutorId: tutor.userId,
+          courseId: course.courseId,
         },
-        select: ['roomId'], // Only get room IDs
       });
-
-      const roomie = await this.roomRepository.findOne({
+      if (duplicateRequest) continue;
+      // Check if the tutor already has a class at the given time
+      const existingClass = await this.classRepository.findOne({
         where: {
-          roomId: Not(In(occupiedRooms.map((occ) => occ.roomId))),
-          onlineRoom: IsNull(),
+          studyWeek: request.studyWeek,
+          studyShift: request.studyShift,
+          tutorId: tutor.userId,
         },
       });
 
-      if (!roomie) {
-        throw new ServiceException(
-          ResponseCode.ROOM_NOT_FOUND,
-          `There is no room left for your request`,
-        );
+      if (existingClass) {
+        failRequest.push({
+          studyWeek: request.studyWeek,
+          studyShift: request.studyShift,
+          noRoom: false,
+          overlapTime: true,
+        });
+        continue;
       }
+
+      //check if have room or not
+      if (!request.online) {
+        console.log('Offline class detected');
+        const occupiedRooms = await this.roomOccupiedRepository.find({
+          where: {
+            studyWeek: request.studyWeek,
+            studyShift: request.studyShift,
+          },
+          select: ['roomId'], // Only get room IDs
+        });
+
+        const roomie = await this.roomRepository.findOne({
+          where: {
+            roomId: Not(In(occupiedRooms.map((occ) => occ.roomId))),
+            onlineRoom: IsNull(),
+          },
+        });
+
+        if (!roomie) {
+          failRequest.push({
+            studyWeek: request.studyWeek,
+            studyShift: request.studyShift,
+            noRoom: true,
+            overlapTime: false,
+          });
+          continue;
+        }
+      }
+
+      // create request
+      const newClassRequest = this.classRequestRepository.create({
+        tutor: tutor,
+        course: course,
+        studyWeek: request.studyWeek,
+        studyShift: request.studyShift,
+        isOnline: request.online,
+      });
+
+      await this.classRequestRepository.save(newClassRequest);
     }
 
-    // create request
-    const newClassRequest = this.classRequestRepository.create({
-      tutor: tutor,
-      course: course,
-      studyWeek: data.studyWeek,
-      studyShift: data.studyShift,
-      isOnline: data.isOnline,
-    });
-
-    await this.classRequestRepository.save(newClassRequest);
-
-    return 'Your class request is successfully created';
+    if (failRequest.length > 0) {
+      return failRequest;
+    }
+    return [];
   }
 
   async acceptClassRequest(
-    create: boolean,
+    create: string,
     requestId: string,
-    data: CreateClassroomDTO,
+    data?: CreateClassroomDTO,
+    reason?: string,
   ) {
-    if (create) {
+    if (create === 'true') {
       let roomie: Room;
       const tutor = await this.tutorRepository.findOne({
         where: { tutorCode: data.tutorCode },
@@ -710,8 +734,30 @@ export class CourseRegistrationService {
         where: { requestId: requestId },
       });
       await this.classRequestRepository.delete(classRequest.requestId);
-
-      return 'You declined the class request ';
+      // For notification update
+      return reason;
     }
+  }
+
+  async viewRequestClasses() {
+    const findAllRequest = await this.classRequestRepository.find();
+
+    const result = findAllRequest.map((request) => {
+      return {
+        tutor: request.tutor.name,
+        tutorId: request.tutor.userId,
+        tutorCode: request.tutor.tutorCode,
+        courseTitle: request.course.courseTitle,
+        courseCode: request.course.courseCode,
+        courseLevel: request.course.courseLevel,
+        courseId: request.course.courseId,
+        courseSubject: request.course.courseSubject,
+        studyWeek: request.studyWeek,
+        studyShift: request.studyShift,
+        isOnline: request.isOnline,
+        requestId: request.requestId,
+      };
+    });
+    return result;
   }
 }

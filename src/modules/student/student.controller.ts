@@ -87,10 +87,18 @@ export class StudentController {
     return this.studentService.viewRegisteredClassesSimple(user.userId);
   }
 
-  @Get('/class-payment')
+  @Post('/class-payment')
   @ApiResponseString()
-  async classPayment(@CurrentUser() user: any): Promise<string> {
-    return this.studentService.classPayment(user.userId);
+  async classPayment(
+    @CurrentUser() user: any,
+    @Body() data: { classPaid: string[] },
+  ): Promise<string> {
+    return this.studentService.classPayment(user.userId, data.classPaid);
+  }
+
+  @Get('/filter-class-payment')
+  async filterClassPayment(@CurrentUser() user: any) {
+    return this.studentService.filterClassPayment(user.userId);
   }
 
   @Get('/view-student-class-history/:studentId')

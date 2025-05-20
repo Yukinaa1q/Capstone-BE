@@ -36,7 +36,7 @@ export class CloudinaryService {
   }
 
   async deletePDF(pdfUrl: string): Promise<void> {
-    const publicId = this.extractPublicId(pdfUrl);
+    const publicId = this.extractPublicIdPDF(pdfUrl);
     if (!publicId) {
       throw new Error('Invalid pdf URL');
     }
@@ -71,5 +71,18 @@ export class CloudinaryService {
     const regex = /\/([^/]+)\.[a-z]+$/;
     const match = imageUrl.match(regex);
     return match ? `courses/${match[1]}` : null;
+  }
+
+  private extractPublicIdPDF(url: string): string | null {
+    const regex = /\/upload\/(?:v\d+\/)?(.+?)(?:\.[^./?]+)?(?:\?.*)?$/;
+    const match = url.match(regex);
+
+    console.log('match', match);
+
+    const arraySlice = url.split('/');
+    console.log('arraySlice', arraySlice);
+
+    // return match ? `${match[1]}` : null;
+    return 'course/' + arraySlice[arraySlice.length - 1];
   }
 }

@@ -87,6 +87,7 @@ export class CourseService {
       where: { courseId: courseId },
     });
     const newCourseOutlineUrl = await this.cloudinaryService.uploadPDF(file);
+
     await this.cloudinaryService.deletePDF(findCourse.courseOutline);
     await this.courseRepository.update(courseId, {
       courseOutline: newCourseOutlineUrl,

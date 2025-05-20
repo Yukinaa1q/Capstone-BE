@@ -87,4 +87,7 @@ export class ViewClassDetailDTO {
 
   @IsString()
   classUrl: string;
+
+  @IsString()
+  status: string;
 }

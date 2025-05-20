@@ -160,6 +160,7 @@ export class CourseRegistrationP2Service {
     });
     let abc = findTutor.classes;
     let xyz = findTutor.paidClass;
+    let wibu = ['pending'];
     const query = this.classroomRepository
       .createQueryBuilder('classroom')
       .leftJoinAndSelect('classroom.course', 'course')
@@ -173,9 +174,11 @@ export class CourseRegistrationP2Service {
       query.andWhere('classroom.classId NOT IN (:...xyz)', {
         xyz,
       });
-    } else {
-      query.where('1 = 1'); // Always true condition
     }
+    query.andWhere('classroom.status IN (:...wibu)', { wibu });
+    // else {
+    //   query.where('1 = 1'); // Always true condition
+    // }
     if (search) {
       query.andWhere('LOWER(classroom.courseTitle) LIKE LOWER(:search)', {
         search: `%${search}%`,
@@ -528,13 +531,13 @@ export class CourseRegistrationP2Service {
       if (aClass.status !== 'open') {
         if (
           today >= addDays(new Date(aClass.startDate), 10) &&
-          aClass.currentStudents < 10 &&
+          aClass.currentStudents < Math.ceil(aClass.maxStudents / 3) &&
           aClass.status === 'pending'
         ) {
           const deleteClass = await this.deleteClass(aClass.classId);
         } else if (
           today >= addDays(new Date(aClass.startDate), 10) &&
-          aClass.currentStudents >= 10 &&
+          aClass.currentStudents >= Math.ceil(aClass.maxStudents / 3) &&
           aClass.status === 'pending'
         ) {
           aClass.status = 'payment';

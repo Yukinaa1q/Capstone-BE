@@ -174,6 +174,7 @@ export class TutorService {
         class: item.classRoom,
         courseImg: item.course.courseImage,
         classUrl: item.room.onlineRoom || 'None',
+        status: item.status,
       }),
     );
 
