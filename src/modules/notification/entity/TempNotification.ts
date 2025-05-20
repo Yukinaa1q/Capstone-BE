@@ -1,16 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsUUID } from 'class-validator';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 // Note: This work as a replacement for the queue as we are lack of time to implement the queue
-@Entity({ name: 'notification' })
+@Entity({ name: 'temp_notification' })
 export class TempNotification {
   @PrimaryGeneratedColumn('uuid')
   @ApiProperty({ type: String })
