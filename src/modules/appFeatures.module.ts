@@ -11,6 +11,7 @@ import { StaffModule } from './staff';
 import { RoomModule } from './room/room.module';
 import { GradeModule } from './grade/grade.module';
 import { StatModule } from './stats/stat.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { StatModule } from './stats/stat.module';
     RoomModule,
     GradeModule,
     StatModule,
+    NotificationModule,
   ],
 })
 export class AppFeaturesModule {}
