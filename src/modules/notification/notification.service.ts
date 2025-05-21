@@ -1,118 +1,88 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Notification } from './entity/Notification';
 import { TempNotification } from './entity/TempNotification';
 import { MessageEvent } from './interface/NotificationMessage.dto';
 
 @Injectable()
 export class NotificationService {
-  constructor(private dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
+    @InjectRepository(TempNotification)
+    private readonly tempNotificationRepository: Repository<TempNotification>,
+  ) {}
   async pingNotification(): Promise<MessageEvent> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const tempNoti = await this.tempNotificationRepository
+      .createQueryBuilder('TempNotification')
+      .where('1=1')
+      .getOne(); // Get randomly one notification
 
-    try {
-      const tempNotiRepo = queryRunner.manager.getRepository(TempNotification);
-
-      const tempNoti = await tempNotiRepo
-        .createQueryBuilder('TempNotification')
-        .where('1=1')
-        .getOne(); // Get randomly one notification
-
-      // There is a notification in the TempNotification table
-      if (tempNoti) {
-        tempNotiRepo.delete(tempNoti.tempNotiId); // Delete the notification after sending
-        await queryRunner.commitTransaction();
-        return {
-          data: {
-            receiverId: tempNoti.receiverId,
-            message: 'New notification',
-          },
-        };
-      }
-
-      // Currently no notfication
+    // There is a notification in the TempNotification table
+    if (tempNoti) {
+      console.log('there is a notification, sending it');
+      this.tempNotificationRepository.delete(tempNoti.tempNotiId); // Delete the notification after sending
       return {
-        data: null,
+        data: {
+          receiverId: tempNoti.receiverId,
+          message: 'New notification',
+        },
       };
-    } catch (err) {
-      // since we have errors lets rollback the changes we made
-      await queryRunner.rollbackTransaction();
-    } finally {
-      // you need to release a queryRunner which was manually instantiated
-      await queryRunner.release();
     }
+
+    // Currently no notfication
+    return {
+      data: {
+        receiverId: '',
+        message: 'No new notification',
+      },
+    };
   }
 
   async getAllNotifications(userId: string) {
     // TODO: Implement logic to fetch all notifications for the user
-    const queryRunner = this.dataSource.createQueryRunner();
-    queryRunner.connect();
-    queryRunner.startTransaction();
-    const notiRepo = queryRunner.manager.getRepository(Notification);
-    try {
-      const notificationList = await notiRepo.find({
-        where: { receiverId: userId, isRead: false },
-      });
-      await queryRunner.commitTransaction();
-      return notificationList;
-    } catch {
-      queryRunner.rollbackTransaction();
-    } finally {
-      queryRunner.release();
-    }
+    const notificationList = await this.notificationRepository.find({
+      where: { receiverId: userId, isRead: false },
+    });
+    return notificationList;
   }
 
   async markAsRead(notificationId: string, userId: string) {
-    const notfiRepo = this.dataSource.manager.getRepository(Notification);
-    const findNoti = await notfiRepo.findOne({
+    const findNoti = await this.notificationRepository.findOne({
       where: { notificationId: notificationId, receiverId: userId },
     });
     if (findNoti) {
       findNoti.isRead = true;
-      await notfiRepo.save(findNoti);
+      await this.notificationRepository.save(findNoti);
     }
+    return 'Notification marked as read';
   }
 
   async markAsReadAll(userId: string) {
-    const notfiRepo = this.dataSource.manager.getRepository(Notification);
-    const findNotiList = await notfiRepo.find({
+    const findNotiList = await this.notificationRepository.find({
       where: { receiverId: userId },
     });
 
     for (const notification of findNotiList) {
       notification.isRead = true;
-      await notfiRepo.save(notification);
+      await this.notificationRepository.save(notification);
     }
   }
 
   sendNotification(receiverId: string, message: string) {
-    const queryRunner = this.dataSource.createQueryRunner();
-    queryRunner.connect();
-    queryRunner.startTransaction();
+    // Create a new notification
+    const newNotification = new Notification();
+    newNotification.receiverId = receiverId;
+    newNotification.message = message;
+    newNotification.isRead = false;
 
-    try {
-      const notiRepo = queryRunner.manager.getRepository(Notification);
-      const tempNotiRepo = queryRunner.manager.getRepository(TempNotification);
-      // Create a new notification
-      const newNotification = new Notification();
-      newNotification.receiverId = receiverId;
-      newNotification.message = message;
-      newNotification.isRead = false;
+    // Create a new temp notification
+    const newTempNotification = new TempNotification();
+    newTempNotification.receiverId = receiverId;
 
-      // Create a new temp notification
-      const newTempNotification = new TempNotification();
-      newTempNotification.receiverId = receiverId;
-
-      // Save the new notification and temp notification
-      notiRepo.save(newNotification);
-      tempNotiRepo.save(newTempNotification);
-      queryRunner.commitTransaction();
-    } catch {
-      queryRunner.rollbackTransaction();
-    } finally {
-      queryRunner.release();
-    }
+    // Save the new notification and temp notification
+    this.notificationRepository.save(newNotification);
+    this.tempNotificationRepository.save(newTempNotification);
   }
 }

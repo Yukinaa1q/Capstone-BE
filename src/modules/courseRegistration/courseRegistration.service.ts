@@ -25,6 +25,7 @@ import { WherebyService } from '@services/whereby/whereby.service';
 import { ClassRequestDTO } from './dto/newClassRequest.dto';
 import { ClassRequest } from './entity/requestClassCreation.entity';
 import { CreateClassroomDTO } from '@modules/class/dto/createClassroom.dto';
+import { NotificationService } from '@modules/notification/notification.service';
 
 export class PaginationMeta {
   totalItems: number;
@@ -54,6 +55,7 @@ export class CourseRegistrationService {
     @InjectRepository(ClassRequest)
     private readonly classRequestRepository: Repository<ClassRequest>,
     private readonly wherebyService: WherebyService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   getRandomElements<T>(array: T[], count: number): T[] {
@@ -726,7 +728,10 @@ export class CourseRegistrationService {
         where: { requestId: requestId },
       });
       await this.classRequestRepository.delete(classRequest.requestId);
-
+      this.notificationService.sendNotification(
+        classRequest.tutor.userId,
+        'Your class request is accepted',
+      );
       return 'The class is created ';
     } else {
       //delete request
@@ -735,6 +740,10 @@ export class CourseRegistrationService {
       });
       await this.classRequestRepository.delete(classRequest.requestId);
       // For notification update
+      this.notificationService.sendNotification(
+        classRequest.tutor.userId,
+        reason,
+      );
       return reason;
     }
   }

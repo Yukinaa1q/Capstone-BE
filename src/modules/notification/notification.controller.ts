@@ -1,6 +1,6 @@
 import { Get, Param, Post, Sse } from '@nestjs/common';
 import { ApiController } from '@services/openApi';
-import { interval, map, Observable } from 'rxjs';
+import { interval, map, mergeMap, Observable } from 'rxjs';
 import { MessageEvent } from './interface/NotificationMessage.dto';
 import { NotificationService } from './notification.service';
 
@@ -9,15 +9,12 @@ export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
   @Sse('sse')
   sendNotification(): Observable<MessageEvent> {
-    console.log('SSE connection established');
-    return interval(2000).pipe(
-      map(() => {
-        let sendData: MessageEvent;
-        this.notificationService
-          .pingNotification()
-          .then((data) => (sendData = data));
-        return sendData;
-      }),
+    return interval(5000).pipe(
+      mergeMap(() =>
+        this.notificationService.pingNotification().then((data) => {
+          return data;
+        }),
+      ),
     );
   }
 

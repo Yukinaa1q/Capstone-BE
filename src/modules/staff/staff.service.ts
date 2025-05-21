@@ -33,7 +33,6 @@ export class StaffService {
   }
 
   async createStaff(data: CreateStaffDTO): Promise<Staff> {
-    console.log('data', data);
     if (!Object.values(staffRole).includes(data.role as staffRole)) {
       throw new BadRequestException('Invalid staff role');
     }

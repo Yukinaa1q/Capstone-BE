@@ -17,6 +17,7 @@ import { RoomOccupied } from './entity/roomOccupied.entity';
 import { WherebyModule } from '@services/whereby/whereby.module';
 import { Grade } from '@modules/grade/entity/grade.entity';
 import { ClassRequest } from './entity/requestClassCreation.entity';
+import { NotificationModule } from '@modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { ClassRequest } from './entity/requestClassCreation.entity';
     ]),
     CourseModule,
     WherebyModule,
+    NotificationModule,
   ],
   controllers: [Phase1RegisterController, Phase2RegisterController],
   providers: [

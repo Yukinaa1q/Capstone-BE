@@ -60,9 +60,7 @@ export class CourseService {
     const updateCourse = await this.courseRepository.findOne({
       where: { courseId: courseId },
     });
-    if (typeof updateCourse.courseOutline === 'string') {
-      updateCourse.courseOutline = JSON.parse(updateCourse.courseOutline);
-    }
+
     return updateCourse;
   }
 

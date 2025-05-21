@@ -362,6 +362,16 @@ export class CourseRegistrationP2Service {
       (classs) => classs !== classId,
     );
 
+    //xóa trong grade
+    const findGrade = await this.gradeRepository.find({
+      where: { classroomId: classId },
+    });
+    if (findGrade && findGrade.length > 0) {
+      for (const grade of findGrade) {
+        await this.gradeRepository.delete(grade.gradeId);
+      }
+    }
+
     await this.roomOccupiedRepository.delete(findRoomOc.id);
     await this.roomRepository.save(findRoom);
     await this.classroomRepository.delete(classId);
@@ -485,8 +495,9 @@ export class CourseRegistrationP2Service {
     }
   }
 
-  @Cron(CronExpression.EVERY_12_HOURS)
+  @Cron(CronExpression.EVERY_5_SECONDS)
   async runCron() {
+    console.log('Running cron job every 5 seconds');
     await this.checkClassStatus();
     await this.checkPayment();
   }
